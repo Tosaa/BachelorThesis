@@ -1,4 +1,4 @@
-package open.source.template.exampleapplication
+package asaa.bachelor.bleconnector
 
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.ext.junit.runners.AndroidJUnit4

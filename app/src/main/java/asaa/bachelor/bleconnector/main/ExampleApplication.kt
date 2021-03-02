@@ -1,4 +1,4 @@
-package open.source.template.exampleapplication.main
+package asaa.bachelor.bleconnector.main
 
 import android.app.Application
 import dagger.hilt.android.HiltAndroidApp

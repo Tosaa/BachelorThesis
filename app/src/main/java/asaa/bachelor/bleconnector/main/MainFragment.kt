@@ -1,4 +1,4 @@
-package open.source.template.exampleapplication.main
+package asaa.bachelor.bleconnector.main
 
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -7,7 +7,7 @@ import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import dagger.hilt.android.AndroidEntryPoint
-import open.source.template.exampleapplication.databinding.MainFragmentBinding
+import asaa.bachelor.bleconnector.databinding.MainFragmentBinding
 
 @AndroidEntryPoint
 class MainFragment : Fragment() {

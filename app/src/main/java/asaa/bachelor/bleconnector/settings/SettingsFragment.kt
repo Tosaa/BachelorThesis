@@ -1,8 +1,8 @@
-package open.source.template.exampleapplication.settings
+package asaa.bachelor.bleconnector.settings
 
 import android.os.Bundle
 import androidx.preference.PreferenceFragmentCompat
-import open.source.template.exampleapplication.R
+import asaa.bachelor.bleconnector.R
 
 class SettingsFragment : PreferenceFragmentCompat() {
 

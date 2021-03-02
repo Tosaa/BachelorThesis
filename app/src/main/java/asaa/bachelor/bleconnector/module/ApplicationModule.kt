@@ -1,4 +1,4 @@
-package open.source.template.exampleapplication.module
+package asaa.bachelor.bleconnector.module
 
 import android.content.Context
 import android.content.SharedPreferences
@@ -8,8 +8,6 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.components.ActivityComponent
 import dagger.hilt.android.qualifiers.ApplicationContext
-import javax.inject.Named
-import javax.inject.Singleton
 
 @Module
 @InstallIn(ActivityComponent::class)

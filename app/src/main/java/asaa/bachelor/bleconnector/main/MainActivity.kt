@@ -1,12 +1,12 @@
-package open.source.template.exampleapplication.main
+package asaa.bachelor.bleconnector.main
 
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.databinding.DataBindingUtil
 import androidx.navigation.fragment.NavHostFragment
 import dagger.hilt.android.AndroidEntryPoint
-import open.source.template.exampleapplication.R
-import open.source.template.exampleapplication.databinding.ActivityMainBinding
+import asaa.bachelor.bleconnector.R
+import asaa.bachelor.bleconnector.databinding.ActivityMainBinding
 
 @AndroidEntryPoint
 class MainActivity : AppCompatActivity() {

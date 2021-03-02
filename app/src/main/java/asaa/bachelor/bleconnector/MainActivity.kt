@@ -1,4 +1,4 @@
-package open.source.template.exampleapplication
+package asaa.bachelor.bleconnector
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle

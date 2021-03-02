@@ -1,4 +1,4 @@
-package open.source.template.exampleapplication.about
+package asaa.bachelor.bleconnector.about
 
 import android.content.SharedPreferences
 import android.os.Bundle
@@ -8,7 +8,7 @@ import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import dagger.hilt.android.AndroidEntryPoint
-import open.source.template.exampleapplication.databinding.AboutFragmentBinding
+import asaa.bachelor.bleconnector.databinding.AboutFragmentBinding
 import javax.inject.Inject
 
 @AndroidEntryPoint

@@ -6,7 +6,7 @@
 
         <variable
             name="viewmodel"
-            type="open.source.template.exampleapplication.main.MainViewModel" />
+            type="asaa.bachelor.bleconnector.main.MainViewModel" />
     </data>
 
     <LinearLayout

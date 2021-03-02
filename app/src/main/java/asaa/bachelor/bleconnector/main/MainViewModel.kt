@@ -1,4 +1,4 @@
-package open.source.template.exampleapplication.main
+package asaa.bachelor.bleconnector.main
 
 import androidx.lifecycle.ViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel

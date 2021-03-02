@@ -7,7 +7,7 @@
 
     <fragment
         android:id="@+id/mainFragment"
-        android:name="open.source.template.exampleapplication.main.MainFragment"
+        android:name="asaa.bachelor.bleconnector.main.MainFragment"
         android:label="main_fragment"
         tools:layout="@layout/main_fragment" >
         <action
@@ -19,11 +19,11 @@
     </fragment>
     <fragment
         android:id="@+id/aboutFragment"
-        android:name="open.source.template.exampleapplication.about.AboutFragment"
+        android:name="asaa.bachelor.bleconnector.about.AboutFragment"
         android:label="about_fragment"
         tools:layout="@layout/about_fragment" />
     <fragment
         android:id="@+id/settingsFragment"
-        android:name="open.source.template.exampleapplication.settings.SettingsFragment"
+        android:name="asaa.bachelor.bleconnector.settings.SettingsFragment"
         android:label="SettingsFragment" />
 </navigation>
