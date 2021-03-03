@@ -7,6 +7,9 @@ import androidx.navigation.fragment.NavHostFragment
 import dagger.hilt.android.AndroidEntryPoint
 import asaa.bachelor.bleconnector.R
 import asaa.bachelor.bleconnector.databinding.ActivityMainBinding
+import java.util.logging.Level
+import java.util.logging.LogManager
+import java.util.logging.Logger
 
 @AndroidEntryPoint
 class MainActivity : AppCompatActivity() {

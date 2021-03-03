@@ -3,7 +3,9 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <data>
-
+        <variable
+            name="viewmodel"
+            type="asaa.bachelor.bleconnector.about.AboutViewModel" />
     </data>
 
     <LinearLayout
@@ -16,14 +18,19 @@
             style="@style/MaterialAlertDialog.MaterialComponents.Title.Text"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="About"
-            android:textAlignment="center" />
+            android:text="@{viewmodel.preferencesExample}" />
 
-        <TextView
-            android:id="@+id/example_preference_status"
-            style="@style/Widget.MaterialComponents.TextView"
+        <com.google.android.material.textview.MaterialTextView
+            style="@style/MaterialAlertDialog.MaterialComponents.Title.Text"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
+            android:layout_height="wrap_content"
+            android:text="@{viewmodel.isBtActive}" />
+
+        <com.google.android.material.textview.MaterialTextView
+            style="@style/MaterialAlertDialog.MaterialComponents.Title.Text"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@{viewmodel.locationPermissionGranted}" />
 
     </LinearLayout>
 </layout>

@@ -16,6 +16,9 @@
         <action
             android:id="@+id/action_mainFragment_to_settingsFragment"
             app:destination="@id/settingsFragment" />
+        <action
+            android:id="@+id/action_mainFragment_to_connectionsFragment"
+            app:destination="@id/connectionsFragment" />
     </fragment>
     <fragment
         android:id="@+id/aboutFragment"
@@ -26,4 +29,8 @@
         android:id="@+id/settingsFragment"
         android:name="asaa.bachelor.bleconnector.settings.SettingsFragment"
         android:label="SettingsFragment" />
+    <fragment
+        android:id="@+id/connectionsFragment"
+        android:name="asaa.bachelor.bleconnector.connections.ConnectionsFragment"
+        android:label="ConnectionsFragment" />
 </navigation>

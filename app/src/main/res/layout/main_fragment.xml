@@ -15,12 +15,12 @@
         android:orientation="vertical"
         tools:context=".main.MainFragment">
 
-        <com.google.android.material.textview.MaterialTextView
-            style="@style/MaterialAlertDialog.MaterialComponents.Title.Text"
-            android:layout_width="match_parent"
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/bt_connections_button"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textAlignment="center"
-            android:text="@{viewmodel.info}" />
+            android:layout_gravity="center"
+            android:text="BT-Connections" />
 
 
     </LinearLayout>

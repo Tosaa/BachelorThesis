@@ -1,7 +1,10 @@
 package asaa.bachelor.bleconnector
 
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import androidx.appcompat.app.AppCompatActivity
+import java.util.logging.Level
+import java.util.logging.LogManager
+import java.util.logging.Logger
 
 class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {

@@ -6,6 +6,8 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.navigation.fragment.findNavController
+import asaa.bachelor.bleconnector.R
 import dagger.hilt.android.AndroidEntryPoint
 import asaa.bachelor.bleconnector.databinding.MainFragmentBinding
 
@@ -22,6 +24,9 @@ class MainFragment : Fragment() {
         binding = MainFragmentBinding.inflate(layoutInflater, container, false)
         binding.lifecycleOwner = this
         binding.viewmodel = viewModel
+        binding.btConnectionsButton.setOnClickListener {
+            findNavController().navigate(R.id.connectionsFragment)
+        }
 
         return binding.root
     }

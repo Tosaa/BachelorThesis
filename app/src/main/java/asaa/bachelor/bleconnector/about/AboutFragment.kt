@@ -26,8 +26,7 @@ class AboutFragment : Fragment() {
     ): View? {
         binding = AboutFragmentBinding.inflate(layoutInflater, container, false)
         binding.lifecycleOwner = this
-        val isOn = preferences.getBoolean("example", false)
-        binding.examplePreferenceStatus.text = "preference status: $isOn"
+        binding.viewmodel = viewModel
         return binding.root
     }
 
