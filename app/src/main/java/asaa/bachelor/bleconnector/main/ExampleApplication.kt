@@ -8,6 +8,4 @@ import java.util.logging.LogManager
 import java.util.logging.Logger
 
 @HiltAndroidApp
-class ExampleApplication : Application() {
-
-}
+class ExampleApplication : Application()
