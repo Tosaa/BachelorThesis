@@ -47,6 +47,12 @@
                 android:text="stop"
                 android:visibility="@{viewmodel.isScanning ? View.VISIBLE : View.GONE}" />
 
+            <com.google.android.material.button.MaterialButton
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:onClick="@{()->viewmodel.closeAll()}"
+                android:text="close all"/>
+
         </LinearLayout>
 
     </androidx.constraintlayout.widget.ConstraintLayout>

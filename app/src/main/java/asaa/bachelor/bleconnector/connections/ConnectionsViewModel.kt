@@ -1,6 +1,5 @@
 package asaa.bachelor.bleconnector.connections
 
-import android.bluetooth.BluetoothAdapter
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import asaa.bachelor.bleconnector.bt.BluetoothOrchestrator
@@ -15,13 +14,17 @@ class ConnectionsViewModel @Inject constructor(val btOrchestrator: BluetoothOrch
 
     fun startScanning() {
         isScanning.postValue(true)
-        btOrchestrator.startScanning()
+        btOrchestrator.startDiscovery()
     }
 
     fun stopScanning() {
         isScanning.postValue(false)
-        btOrchestrator.cancelScanning()
+        btOrchestrator.stopDiscovery()
         btDevicesSize.postValue(btOrchestrator.btDevices.size)
+    }
+
+    fun closeAll() {
+
     }
 
 }

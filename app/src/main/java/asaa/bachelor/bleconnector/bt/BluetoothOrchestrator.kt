@@ -8,26 +8,34 @@ import android.bluetooth.le.ScanSettings
 import android.content.Context
 import android.net.MacAddress
 import android.os.Handler
+import android.os.Looper
 import android.util.Log
 import dagger.hilt.android.qualifiers.ApplicationContext
 import java.util.logging.Logger
 import javax.inject.Inject
 import javax.inject.Singleton
 
-const val TAG = "BluetoothOrchestrator"
+private const val TAG = "BluetoothOrchestrator"
 
 @Singleton
-class BluetoothOrchestrator @Inject constructor(@ApplicationContext val context: Context) {
-
-    init {
-        Log.v(TAG, "created")
-    }
+class BluetoothOrchestrator @Inject constructor(@ApplicationContext val context: Context) :
+    IBluetoothOrchestrator {
 
     private val btAdapter = BluetoothAdapter.getDefaultAdapter()
 
     val btDevices: MutableList<BluetoothDevice> = mutableListOf()
-    private val btDeviceGattMap: MutableMap<String, BluetoothGatt> = mutableMapOf()
+
     val handler = Handler(context.mainLooper)
+
+    private val btDeviceConnectionMap: MutableMap<BluetoothDevice, BluetoothConnection> =
+        mutableMapOf()
+
+    private fun resolveBTDevice(macAddress: String): BluetoothDevice? = btDevices.find { it.address == macAddress }
+    private fun resolveBTConnection(macAddress: String): BluetoothConnection? {
+        return resolveBTDevice(macAddress)?.let {
+            btDeviceConnectionMap[it]
+        }
+    }
 
     // Callback
     private val scanCallback = object : ScanCallback() {
@@ -61,71 +69,47 @@ class BluetoothOrchestrator @Inject constructor(@ApplicationContext val context:
         .setMatchMode(ScanSettings.MATCH_MODE_AGGRESSIVE)
         .build()
 
-    fun startScanning() {
+    override fun startDiscovery() {
         btAdapter.bluetoothLeScanner.startScan(filter, scanSettings, scanCallback)
         handler.postDelayed({
-            cancelScanning()
+            stopDiscovery()
         }, 10000L)
     }
 
-    fun cancelScanning() {
+    override fun stopDiscovery() {
         handler.removeCallbacksAndMessages(null)
         btAdapter.bluetoothLeScanner.stopScan(scanCallback)
     }
 
-    fun connectAndroidWay(device: BluetoothDevice, listener: BluetoothEstablishListener) {
-        Log.v(TAG, "connect on the android way: ${device.address}")
-        device.connectGatt(context, false, AndroidGattCallback(listener))
-    }
-
-    fun connectWithLibrary(device: BluetoothDevice) {
-        Log.v(TAG, "connect with the library: ${device.address}")
-    }
-
-    private inner class AndroidGattCallback(private val listener: BluetoothEstablishListener) :
-        BluetoothGattCallback() {
-        override fun onServicesDiscovered(gatt: BluetoothGatt?, status: Int) {
-            super.onServicesDiscovered(gatt, status)
-            Log.v(TAG, "service discovered for $gatt")
-            gatt?.services?.forEach {
-                Log.v(TAG,
-                    it.characteristics.joinToString(
-                        separator = ",",
-                    ) { it.uuid.toString() }
-                )
-            }
+    override fun connect(macAddress: String): BluetoothConnection? {
+        Log.v(TAG, "request connection for: $macAddress")
+        val device = resolveBTDevice(macAddress)
+        if (device == null) {
+            Log.v(TAG, "No Device for Addr: $macAddress")
+            return null
         }
-
-        override fun onConnectionStateChange(gatt: BluetoothGatt, status: Int, newState: Int) {
-            val deviceAddress = gatt.device.address
-
-            if (status == BluetoothGatt.GATT_SUCCESS) {
-                if (newState == BluetoothProfile.STATE_CONNECTED) {
-                    Log.w("BluetoothGattCallback", "Successfully connected to $deviceAddress")
-                    btDeviceGattMap[deviceAddress] = gatt
-                    listener.onConnected(deviceAddress)
-                    gatt.discoverServices()
-
-                } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
-                    Log.w("BluetoothGattCallback", "Successfully disconnected from $deviceAddress")
-                    btDeviceGattMap.remove(deviceAddress)
-                    listener.onDisconnected(deviceAddress)
-                    gatt.close()
-                }
-            } else {
-                Log.w(
-                    "BluetoothGattCallback",
-                    "Error $status encountered for $deviceAddress! Disconnecting..."
-                )
-                listener.onError(deviceAddress, status.toString())
-                gatt.close()
-            }
+        if (btDeviceConnectionMap[device] == null) {
+            Log.v(TAG, "create new BluetoothConnection for: $macAddress")
+            btDeviceConnectionMap[device] = BluetoothConnection(device)
         }
+        Log.v(TAG, "connect BluetoothDevice: $macAddress")
+        btDeviceConnectionMap[device]?.connect(context, false)
+
+        return btDeviceConnectionMap[device]
     }
 
-    interface BluetoothEstablishListener {
-        fun onConnected(macAddress: String)
-        fun onDisconnected(macAddress: String)
-        fun onError(macAddress: String, error: String)
+    fun connectionFor(macAddress: String): BluetoothConnection? {
+        return btDeviceConnectionMap[btDevices.find { it.address == macAddress } ?: return null]
     }
+
+    override fun disconnect(macAddress: String) {
+        Log.v(TAG, "disconnect:$macAddress")
+        val connection = resolveBTConnection(macAddress)
+        if (connection == null || connection.connectionStatus != ConnectionStatus.CONNECTED) {
+            Log.v(TAG, "questionable disconnect call for connection: $connection")
+            return
+        }
+        connection.disconnect()
+    }
+
 }

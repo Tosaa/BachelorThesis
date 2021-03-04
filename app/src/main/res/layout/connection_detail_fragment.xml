@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <data>
+
+        <variable
+            name="viewmodel"
+            type="asaa.bachelor.bleconnector.connections.connection.ConnectionDetailViewModel" />
+
+        <import type="android.view.View" />
+    </data>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_margin="5dp"
+        android:orientation="vertical">
+
+        <com.google.android.material.textview.MaterialTextView
+            android:id="@+id/connected_mac_address"
+            style="@style/AppTheme.TextView.Title"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@{viewmodel.macAddress}" />
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_gravity="fill_horizontal"
+            >
+
+            <com.google.android.material.textview.MaterialTextView
+                style="@style/AppTheme.TextView.SubTitle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Connection:"
+                />
+
+            <com.google.android.material.textview.MaterialTextView
+                style="@style/AppTheme.TextView.SubTitle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                tools:text="CONNECTED"
+                android:text="@{viewmodel.connectionState}" />
+
+            <Space
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                />
+            <com.google.android.material.button.MaterialButton
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:onClick="@{()->viewmodel.reconnect()}"
+                android:text="reconnect"
+                tools:visibility="gone"
+                android:visibility="@{viewmodel.isConnected() ? View.GONE : View.VISIBLE}" />
+
+            <com.google.android.material.button.MaterialButton
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:onClick="@{()->viewmodel.disconnect()}"
+                android:text="disconnect"
+                android:visibility="@{viewmodel.isConnected() ? View.VISIBLE : View.GONE}" />
+        </LinearLayout>
+
+        <com.google.android.material.textview.MaterialTextView
+            style="@style/AppTheme.TextView.Title2"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Characteristics:" />
+
+        <com.google.android.material.textview.MaterialTextView
+            style="@style/AppTheme.TextView.Content"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="5dp"
+            android:text="@{viewmodel.serviceUUIDs}" />
+
+    </LinearLayout>
+</layout>

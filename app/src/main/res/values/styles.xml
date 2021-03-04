@@ -7,4 +7,14 @@
         <item name="colorAccent">@color/colorAccent</item>
     </style>
 
+    <style name="AppTheme.TextView.Title" parent="TextAppearance.MaterialComponents.Headline5"></style>
+
+    <style name="AppTheme.TextView.Title2" parent="TextAppearance.MaterialComponents.Headline6"></style>
+
+    <style name="AppTheme.TextView.SubTitle" parent="TextAppearance.MaterialComponents.Subtitle1">
+        <!--- <item name="android:textStyle">normal</item>-->
+    </style>
+
+    <style name="AppTheme.TextView.Content" parent="TextAppearance.MaterialComponents.Body2"></style>
+
 </resources>

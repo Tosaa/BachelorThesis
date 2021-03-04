@@ -17,7 +17,7 @@
 
             <com.google.android.material.textview.MaterialTextView
                 android:id="@+id/device_address"
-                style="@style/MaterialAlertDialog.MaterialComponents.Title.Text"
+                style="@style/AppTheme.TextView.Title"
                 android:layout_width="wrap_content"
                 android:layout_height="match_parent" />
         </LinearLayout>
@@ -28,21 +28,21 @@
 
             <com.google.android.material.textview.MaterialTextView
                 android:id="@+id/device_name"
-                style="@style/Widget.MaterialComponents.TextView"
+                style="@style/AppTheme.TextView.Content"
                 android:layout_width="wrap_content"
                 android:layout_height="match_parent"
                 android:layout_weight="1" />
 
             <com.google.android.material.textview.MaterialTextView
                 android:id="@+id/device_type"
-                style="@style/Widget.MaterialComponents.TextView"
+                style="@style/AppTheme.TextView.Content"
                 android:layout_width="wrap_content"
                 android:layout_height="match_parent"
                 android:layout_weight="1" />
 
             <com.google.android.material.textview.MaterialTextView
                 android:id="@+id/device_bonding_state"
-                style="@style/Widget.MaterialComponents.TextView"
+                style="@style/AppTheme.TextView.Content"
                 android:layout_width="wrap_content"
                 android:layout_height="match_parent"
                 android:layout_weight="1" />
@@ -73,5 +73,11 @@
                 android:text="connect B" />
 
         </LinearLayout>
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/button_show_connection"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Show"
+            />
     </LinearLayout>
 </layout>

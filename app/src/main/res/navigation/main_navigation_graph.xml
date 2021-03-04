@@ -32,5 +32,17 @@
     <fragment
         android:id="@+id/connectionsFragment"
         android:name="asaa.bachelor.bleconnector.connections.ConnectionsFragment"
-        android:label="ConnectionsFragment" />
+        android:label="ConnectionsFragment" >
+        <action
+            android:id="@+id/action_connectionsFragment_to_connectionDetail"
+            app:destination="@id/connectionDetail" />
+    </fragment>
+    <fragment
+        android:id="@+id/connectionDetail"
+        android:name="asaa.bachelor.bleconnector.connections.connection.ConnectionDetailFragment"
+        android:label="ConnectionDetail" >
+        <argument
+            android:name="macAddress"
+            app:argType="string" />
+    </fragment>
 </navigation>
