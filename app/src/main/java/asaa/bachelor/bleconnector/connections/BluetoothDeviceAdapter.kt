@@ -11,6 +11,7 @@ import asaa.bachelor.bleconnector.bt.BluetoothOrchestrator
 import asaa.bachelor.bleconnector.bt.BtUtil
 import asaa.bachelor.bleconnector.bt.ConnectionStatus
 import asaa.bachelor.bleconnector.databinding.BluetoothDeviceItemBinding
+import timber.log.Timber
 
 private const val TAG = "BluetoothDeviceAdapter"
 
@@ -44,14 +45,14 @@ class BluetoothDeviceAdapter(
                 bluetoothDevice.isConnected
             )
             holder.buttonA.setOnClickListener {
-                Log.v(TAG, "on A clicked")
+                Timber.v("on A clicked")
                 bluetoothOrchestrator.connect(
                     btDevices[position].device.address
                 )
                 navController.navigate(ConnectionsFragmentDirections.actionConnectionsFragmentToConnectionDetail(btDevices[position].device.address))
             }
             holder.buttonShowConnection.setOnClickListener {
-                Log.v(TAG, "on show connection clicked")
+                Timber.v("on show connection clicked")
                 navController.navigate(ConnectionsFragmentDirections.actionConnectionsFragmentToConnectionDetail(btDevices[position].device.address))
             }
 
@@ -76,7 +77,7 @@ class BluetoothDeviceAdapter(
     fun updateDevices(newBtDevices: List<BluetoothDevice>) {
         btDevices.clear()
         btDevices.addAll(newBtDevices.map { BluetoothDeviceWithState(it, bluetoothOrchestrator.connectionFor(it.address)?.connectionStatus.let { it == ConnectionStatus.CONNECTED }) })
-        Log.v(TAG, "update all BluetoothDevices: $btDevices")
+        Timber.v("update all BluetoothDevices: $btDevices")
         notifyDataSetChanged()
     }
 

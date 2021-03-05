@@ -1,10 +1,13 @@
 package asaa.bachelor.bleconnector.bt
 
-import android.bluetooth.*
+import android.bluetooth.BluetoothDevice
+import android.bluetooth.BluetoothGatt
+import android.bluetooth.BluetoothGattCharacteristic
+import android.bluetooth.BluetoothProfile
 import android.content.Context
 import android.os.Handler
 import android.os.Looper
-import android.util.Log
+import timber.log.Timber
 import java.util.*
 
 private const val TAG: String = "BluetoothConnection"
@@ -12,19 +15,19 @@ private const val TAG: String = "BluetoothConnection"
 class BluetoothConnection(private val device: BluetoothDevice) {
 
     init {
-        Log.v(TAG, "create BluetoothConnection for $device")
+        Timber.v("create BluetoothConnection for $device")
     }
 
     var connectionStatus: ConnectionStatus = ConnectionStatus.NOT_CONNECTED
         set(value) {
             notifyStatusChanged(value)
-            Log.v(TAG, "connection Status Changed: $field -> $value")
+            Timber.v("connection Status Changed: $field -> $value")
             field = value
         }
     var discoveryStatus: DiscoveryStatus = DiscoveryStatus.DISCOVERY_FAILED("not discovered yet")
         set(value) {
             notifyDiscoveryStatusChanged(value)
-            Log.v(TAG, "discovery Status Changed: $field -> $value")
+            Timber.v("discovery Status Changed: $field -> $value")
             field = value
         }
 
@@ -33,7 +36,7 @@ class BluetoothConnection(private val device: BluetoothDevice) {
     val callback = BluetoothCallback()
 
     fun connect(context: Context, autoConnect: Boolean) {
-        Log.v(TAG, "connect $device (autoconnect:$autoConnect)")
+        Timber.v("connect $device (autoconnect:$autoConnect)")
         connectionStatus = ConnectionStatus.CONNECTING
         device.connectGatt(context, autoConnect, callback)
     }
@@ -43,7 +46,7 @@ class BluetoothConnection(private val device: BluetoothDevice) {
     }
 
     fun addObserver(o: IStatusObserver) {
-        Log.v(TAG, "add Observer: $o")
+        Timber.v("add Observer: $o")
         observers.add(o)
         o.onStatusChanged(connectionStatus)
         o.onDiscoveryStateChanged(discoveryStatus)
@@ -69,14 +72,14 @@ class BluetoothConnection(private val device: BluetoothDevice) {
     inner class BluetoothCallback : LogableBluetoothGattCallback() {
 
         init {
-            Log.v(TAG, "Create new BluetoothGattCallback for this(${device.address}) connection")
+            Timber.v("Create new BluetoothGattCallback for this(${device.address}) connection")
         }
 
         override fun onServicesDiscovered(gatt: BluetoothGatt?, status: Int) {
             super.onServicesDiscovered(gatt, status)
             discoveryStatus = DiscoveryStatus.DISCOVERY_FINISHED(gatt?.services ?: emptyList())
             gatt?.services?.forEach {
-                Log.v(TAG,
+                Timber.v(
                     it.characteristics.joinToString(
                         separator = ",",
                     ) { it.uuid.toString() }
@@ -88,13 +91,13 @@ class BluetoothConnection(private val device: BluetoothDevice) {
         override fun onCharacteristicRead(gatt: BluetoothGatt?, characteristic: BluetoothGattCharacteristic?, status: Int) {
             super.onCharacteristicRead(gatt, characteristic, status)
             val gattStatus = BtUtil.BluetoothGattStatus.get(status)
-            Log.v(TAG, "gatt status: $gattStatus")
+            Timber.v("gatt status: $gattStatus")
             when (gattStatus) {
                 BtUtil.BluetoothGattStatus.GATT_SUCCESS -> {
-                    Log.v(TAG, characteristic?.value?.joinToString(" ") { it.toChar().toString() } ?: "could not read value")
+                    Timber.v(characteristic?.value?.joinToString(" ") { it.toChar().toString() } ?: "could not read value")
                 }
                 BtUtil.BluetoothGattStatus.GATT_READ_NOT_PERMITTED -> {
-                    Log.v(TAG, "not permitted to read value")
+                    Timber.v("not permitted to read value")
                 }
                 else -> {
                 }
@@ -104,25 +107,24 @@ class BluetoothConnection(private val device: BluetoothDevice) {
         override fun onConnectionStateChange(gatt: BluetoothGatt?, status: Int, newState: Int) {
             super.onConnectionStateChange(gatt, status, newState)
             if (gatt == null) {
-                Log.v(TAG, "gatt is null: $gatt")
+                Timber.v("gatt is null: $gatt")
                 return
             }
             bluetoothGatt = gatt
             connectionStatus = BtUtil.resolveBluetoothProfileToConnectionStatus(newState)
             if (status == BluetoothGatt.GATT_SUCCESS) {
                 if (newState == BluetoothProfile.STATE_CONNECTED) {
-                    Log.w(TAG, "Successfully connected to ${device.address}")
+                    Timber.w("Successfully connected to ${device.address}")
                     discoveryStatus = DiscoveryStatus.DISCOVERY_STARTED
                     Handler(Looper.getMainLooper()).run {
                         gatt.discoverServices()
                     }
                 } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
-                    Log.w(TAG, "Successfully disconnected from ${device.address}")
+                    Timber.w("Successfully disconnected from ${device.address}")
                     gatt.close()
                 }
             } else {
-                Log.w(
-                    TAG,
+                Timber.w(
                     "Error $status encountered for ${device.address}! Disconnecting..."
                 )
                 connectionStatus = ConnectionStatus.CONNECTING_FAILED("$status")
@@ -133,16 +135,16 @@ class BluetoothConnection(private val device: BluetoothDevice) {
 
 
     fun readCharacteristic(service: String, characteristic: String): Boolean {
-        Log.v(TAG, "read $service -> $characteristic")
+        Timber.v("read $service -> $characteristic")
         val serviceUUID = UUID.fromString(service)
         val characteristicUUID = UUID.fromString(characteristic)
         val gattCharacteristic = bluetoothGatt?.getService(serviceUUID)?.getCharacteristic(characteristicUUID)
         return if (BtUtil.BluetoothCharacteristicProperty.transform(gattCharacteristic?.properties ?: 0).contains(BtUtil.BluetoothCharacteristicProperty.PROPERTY_READ)) {
-            Log.v(TAG, "start readCharacteristic")
+            Timber.v("start readCharacteristic")
             bluetoothGatt?.readCharacteristic(gattCharacteristic)
             true
         } else {
-            Log.v(TAG, "characteristic: $gattCharacteristic is not readable()")
+            Timber.v("characteristic: $gattCharacteristic is not readable()")
             false
         }
     }

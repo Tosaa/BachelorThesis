@@ -11,6 +11,7 @@ import androidx.navigation.fragment.navArgs
 import asaa.bachelor.bleconnector.bt.*
 import asaa.bachelor.bleconnector.databinding.ConnectionDetailFragmentBinding
 import dagger.hilt.android.AndroidEntryPoint
+import timber.log.Timber
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -41,7 +42,7 @@ class ConnectionDetailFragment : Fragment(), IStatusObserver {
 
     override fun onResume() {
         super.onResume()
-        Log.v("TAG", "onResume")
+        Timber.v( "onResume")
         connection?.addObserver(this)
     }
 
@@ -65,7 +66,7 @@ class ConnectionDetailFragment : Fragment(), IStatusObserver {
 
     override fun onPause() {
         super.onPause()
-        Log.v("TAG", "onPause")
+        Timber.v( "onPause")
         connection?.removeObserver(this)
     }
 

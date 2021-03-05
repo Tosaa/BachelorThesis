@@ -11,6 +11,7 @@ import asaa.bachelor.bleconnector.bt.BluetoothOrchestrator
 import asaa.bachelor.bleconnector.bt.BtUtil
 import asaa.bachelor.bleconnector.bt.ConnectionStatus
 import dagger.hilt.android.lifecycle.HiltViewModel
+import timber.log.Timber
 import javax.inject.Inject
 
 private const val TAG = "ConnectionDetailViewModel"
@@ -42,7 +43,7 @@ class ConnectionDetailViewModel @Inject constructor(val bluetoothOrchestrator: B
     }
 
     fun reconnect() {
-        Log.v(TAG, "reconnect mac Addr: ${macAddress.value}")
+        Timber.v("reconnect mac Addr: ${macAddress.value}")
         macAddress.value?.takeIf { !it.isEmpty() }?.let {
             bluetoothOrchestrator.connect(it)
         }

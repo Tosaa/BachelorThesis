@@ -10,6 +10,7 @@ import android.content.Context
 import android.os.Handler
 import android.util.Log
 import dagger.hilt.android.qualifiers.ApplicationContext
+import timber.log.Timber
 import java.util.logging.Logger
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -21,7 +22,7 @@ class BluetoothOrchestrator @Inject constructor(@ApplicationContext val context:
     IBluetoothOrchestrator {
 
     init {
-        Log.v(TAG, "bluetooth Orchestrator created")
+        Timber.v("bluetooth Orchestrator created")
     }
 
     private val btAdapter = BluetoothAdapter.getDefaultAdapter()
@@ -44,7 +45,7 @@ class BluetoothOrchestrator @Inject constructor(@ApplicationContext val context:
     private val scanCallback = object : ScanCallback() {
         override fun onScanResult(callbackType: Int, result: ScanResult?) {
             super.onScanResult(callbackType, result)
-            Log.v(TAG, "onScanResult:$result")
+            Timber.v("onScanResult:$result")
             result?.device?.let {
                 if (!btDevices.contains(it)) {
                     btDevices.add(it)
@@ -54,7 +55,7 @@ class BluetoothOrchestrator @Inject constructor(@ApplicationContext val context:
 
         override fun onBatchScanResults(results: MutableList<ScanResult>?) {
             super.onBatchScanResults(results)
-            Log.v(TAG, "onBatchResult")
+            Timber.v("onBatchResult")
         }
 
         override fun onScanFailed(errorCode: Int) {
@@ -85,17 +86,17 @@ class BluetoothOrchestrator @Inject constructor(@ApplicationContext val context:
     }
 
     override fun connect(macAddress: String): BluetoothConnection? {
-        Log.v(TAG, "request connection for: $macAddress")
+        Timber.v("request connection for: $macAddress")
         val device = resolveBTDevice(macAddress)
         if (device == null) {
-            Log.v(TAG, "No Device for Addr: $macAddress")
+            Timber.v("No Device for Addr: $macAddress")
             return null
         }
         if (btDeviceConnectionMap[device] == null) {
-            Log.v(TAG, "create new BluetoothConnection for: $macAddress")
+            Timber.v("create new BluetoothConnection for: $macAddress")
             btDeviceConnectionMap[device] = BluetoothConnection(device)
         }
-        Log.v(TAG, "connect BluetoothDevice: $macAddress")
+        Timber.v("connect BluetoothDevice: $macAddress")
         btDeviceConnectionMap[device]?.connect(context, false)
 
         return btDeviceConnectionMap[device]
@@ -106,10 +107,10 @@ class BluetoothOrchestrator @Inject constructor(@ApplicationContext val context:
     }
 
     override fun disconnect(macAddress: String) {
-        Log.v(TAG, "disconnect:$macAddress")
+        Timber.v("disconnect:$macAddress")
         val connection = resolveBTConnection(macAddress)
         if (connection == null || connection.connectionStatus != ConnectionStatus.CONNECTED) {
-            Log.v(TAG, "questionable disconnect call for connection: $connection")
+            Timber.v("questionable disconnect call for connection: $connection")
             return
         }
         connection.disconnect()
@@ -118,7 +119,7 @@ class BluetoothOrchestrator @Inject constructor(@ApplicationContext val context:
     fun disconnectAll() {
         btDeviceConnectionMap.forEach { device, connection ->
             if (connection.connectionStatus == ConnectionStatus.CONNECTED) {
-                Log.v(TAG, "disconnect: ${device.address}")
+                Timber.v("disconnect: ${device.address}")
                 connection.disconnect()
             }
         }

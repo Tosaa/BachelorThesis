@@ -1,5 +1,9 @@
 package asaa.bachelor.bleconnector.connections
 
+import android.bluetooth.BluetoothDevice
+import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -11,12 +15,11 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.RecyclerView
-import asaa.bachelor.bleconnector.bt.BluetoothOrchestrator
-import asaa.bachelor.bleconnector.bt.ConnectionStatus
-import asaa.bachelor.bleconnector.bt.DiscoveryStatus
-import asaa.bachelor.bleconnector.bt.IStatusObserver
+import androidx.work.impl.utils.ForceStopRunnable
+import asaa.bachelor.bleconnector.bt.*
 import asaa.bachelor.bleconnector.databinding.ConnectionsFragmentBinding
 import dagger.hilt.android.AndroidEntryPoint
+import timber.log.Timber
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -44,9 +47,13 @@ class ConnectionsFragment : Fragment() {
 
         recyclerView.adapter = adapter
         viewModel.btDevicesSize.observe(viewLifecycleOwner) {
-            Log.v("ConnectionsFragment", "${bluetoothOrchestrator.btDevices}")
+            Timber.v("${bluetoothOrchestrator.btDevices}")
             adapter.updateDevices(bluetoothOrchestrator.btDevices)
         }
+    }
+
+    override fun onResume() {
+        super.onResume()
     }
 
     override fun onPause() {
