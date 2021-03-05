@@ -5,6 +5,7 @@ import android.content.Context
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
+import java.util.*
 
 private const val TAG: String = "BluetoothConnection"
 
@@ -84,6 +85,22 @@ class BluetoothConnection(private val device: BluetoothDevice) {
             connectionStatus = ConnectionStatus.CONNECTED
         }
 
+        override fun onCharacteristicRead(gatt: BluetoothGatt?, characteristic: BluetoothGattCharacteristic?, status: Int) {
+            super.onCharacteristicRead(gatt, characteristic, status)
+            val gattStatus = BtUtil.BluetoothGattStatus.get(status)
+            Log.v(TAG, "gatt status: $gattStatus")
+            when (gattStatus) {
+                BtUtil.BluetoothGattStatus.GATT_SUCCESS -> {
+                    Log.v(TAG, characteristic?.value?.joinToString(" ") { it.toChar().toString() } ?: "could not read value")
+                }
+                BtUtil.BluetoothGattStatus.GATT_READ_NOT_PERMITTED -> {
+                    Log.v(TAG, "not permitted to read value")
+                }
+                else -> {
+                }
+            }
+        }
+
         override fun onConnectionStateChange(gatt: BluetoothGatt?, status: Int, newState: Int) {
             super.onConnectionStateChange(gatt, status, newState)
             if (gatt == null) {
@@ -113,5 +130,23 @@ class BluetoothConnection(private val device: BluetoothDevice) {
             }
         }
     }
+
+
+    fun readCharacteristic(service: String, characteristic: String): Boolean {
+        Log.v(TAG, "read $service -> $characteristic")
+        val serviceUUID = UUID.fromString(service)
+        val characteristicUUID = UUID.fromString(characteristic)
+        val gattCharacteristic = bluetoothGatt?.getService(serviceUUID)?.getCharacteristic(characteristicUUID)
+        return if (BtUtil.BluetoothCharacteristicProperty.transform(gattCharacteristic?.properties ?: 0).contains(BtUtil.BluetoothCharacteristicProperty.PROPERTY_READ)) {
+            Log.v(TAG, "start readCharacteristic")
+            bluetoothGatt?.readCharacteristic(gattCharacteristic)
+            true
+        } else {
+            Log.v(TAG, "characteristic: $gattCharacteristic is not readable()")
+            false
+        }
+    }
+
+    fun writeCharacteristic() {}
 
 }

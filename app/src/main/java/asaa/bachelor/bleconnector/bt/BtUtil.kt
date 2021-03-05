@@ -4,7 +4,7 @@ import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothGatt
 import android.bluetooth.BluetoothGattCharacteristic
 import android.bluetooth.BluetoothProfile
-import android.util.Log
+import java.util.*
 
 object BtUtil {
 
@@ -49,23 +49,26 @@ object BtUtil {
         }
     }
 
-    fun resolveBluetoothGattStatus(gattStatus: Int): String {
-        return when (gattStatus) {
-            BluetoothGatt.GATT -> "GATT"
-            BluetoothGatt.GATT_CONNECTION_CONGESTED -> "CONNECTION_CONGESTED"
-            BluetoothGatt.GATT_FAILURE -> "FAILURE"
-            BluetoothGatt.GATT_INSUFFICIENT_AUTHENTICATION -> "INSUFFICIENT_AUTHENTICATION"
-            BluetoothGatt.GATT_INSUFFICIENT_ENCRYPTION -> "INSUFFICIENT_ENCRYPTION"
-            BluetoothGatt.GATT_INVALID_ATTRIBUTE_LENGTH -> "INVALID_ATTRIBUTE_LENGTH"
-            BluetoothGatt.GATT_INVALID_OFFSET -> "INVALID_OFFSET"
-            BluetoothGatt.GATT_READ_NOT_PERMITTED -> "READ_NOT_PERMITTED"
-            BluetoothGatt.GATT_WRITE_NOT_PERMITTED -> "WRITE_NOT_PERMITTED"
-            BluetoothGatt.GATT_REQUEST_NOT_SUPPORTED -> "REQUEST_NOT_SUPPORTED"
-            BluetoothGatt.GATT_SERVER -> "SERVER"
-            BluetoothGatt.GATT_SUCCESS -> "SUCCESS"
-            else -> "UKNOWN"
+    enum class BluetoothGattStatus(val gattStatus: Int){
+        GATT(BluetoothGatt.GATT),
+        GATT_CONNECTION_CONGESTED(BluetoothGatt.GATT_CONNECTION_CONGESTED),
+        GATT_FAILURE(BluetoothGatt.GATT_FAILURE),
+        GATT_INSUFFICIENT_AUTHENTICATION(BluetoothGatt.GATT_INSUFFICIENT_AUTHENTICATION),
+        GATT_INSUFFICIENT_ENCRYPTION(BluetoothGatt.GATT_INSUFFICIENT_ENCRYPTION),
+        GATT_INVALID_ATTRIBUTE_LENGTH(BluetoothGatt.GATT_INVALID_ATTRIBUTE_LENGTH),
+        GATT_INVALID_OFFSET(BluetoothGatt.GATT_INVALID_OFFSET),
+        GATT_READ_NOT_PERMITTED(BluetoothGatt.GATT_READ_NOT_PERMITTED),
+        GATT_WRITE_NOT_PERMITTED(BluetoothGatt.GATT_WRITE_NOT_PERMITTED),
+        GATT_REQUEST_NOT_SUPPORTED(BluetoothGatt.GATT_REQUEST_NOT_SUPPORTED),
+        GATT_SERVER(BluetoothGatt.GATT_SERVER),
+        GATT_SUCCESS(BluetoothGatt.GATT_SUCCESS);
+
+        companion object {
+            private val map = BluetoothGattStatus.values().associateBy(BluetoothGattStatus::gattStatus)
+            fun get(gattStatus: Int) = map[gattStatus]
         }
     }
+
 
     enum class BluetoothCharacteristicProperty(val bluetoothGattCharacteristicProperty: Int) {
         PROPERTY_BROADCAST(BluetoothGattCharacteristic.PROPERTY_BROADCAST),
@@ -83,5 +86,15 @@ object BtUtil {
                 return map.values.filter { it.bluetoothGattCharacteristicProperty and property != 0 }
             }
         }
+    }
+
+    enum class CommonServices(val uuid: String) {
+        BatteryService("0000180f-0000-1000-8000-00805f9b34fb");
+        val asUUID = UUID.fromString(uuid)
+    }
+
+    enum class CommonCharacteristics(val uuid: String) {
+        BatteryCharacteristic("00002a19-0000-1000-8000-00805f9b34fb");
+        val asUUID = UUID.fromString(uuid)
     }
 }

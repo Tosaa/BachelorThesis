@@ -35,6 +35,11 @@ class ConnectionDetailViewModel @Inject constructor(val bluetoothOrchestrator: B
         }
     }
 
+    val containsBatteryService = services.map {
+        it.any {
+            it.uuid == BtUtil.CommonServices.BatteryService.asUUID
+        }
+    }
 
     fun reconnect() {
         Log.v(TAG, "reconnect mac Addr: ${macAddress.value}")
