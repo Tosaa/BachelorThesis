@@ -2,6 +2,7 @@ package asaa.bachelor.bleconnector.module
 
 import android.content.Context
 import android.content.SharedPreferences
+import androidx.preference.Preference
 import androidx.preference.PreferenceManager
 import asaa.bachelor.bleconnector.bt.BluetoothOrchestrator
 import dagger.Binds

@@ -1,10 +1,37 @@
-<PreferenceScreen xmlns:app="http://schemas.android.com/apk/res-auto">
+<PreferenceScreen xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:android="http://schemas.android.com/apk/res/android">
 
     <PreferenceCategory app:title="@string/examples">
 
         <SwitchPreferenceCompat
             app:key="example"
             app:title="@string/examplePreference" />
+
+    </PreferenceCategory>
+
+    <PreferenceCategory
+        app:title="System Configurations"
+        android:summary="These settings can only be changed in the System Settings"
+        >
+
+        <SwitchPreferenceCompat
+            app:key="bluetooth_active"
+            app:selectable="false"
+            app:summary="Enable Bluetooth in your System settings"
+            app:title="Bluetooth" />
+
+        <SwitchPreferenceCompat
+            app:key="location_active"
+            app:selectable="false"
+            app:summary="Enable Location in your System settings"
+            app:title="Location" />
+
+        <SwitchPreferenceCompat
+            app:key="location_permission_granted"
+            app:selectable="false"
+            app:summary="Grant Permission to your Location in your System settings"
+            app:title="Location permission" />
+
 
     </PreferenceCategory>
 

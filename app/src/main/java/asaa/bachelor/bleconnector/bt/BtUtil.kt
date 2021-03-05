@@ -2,7 +2,9 @@ package asaa.bachelor.bleconnector.bt
 
 import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothGatt
+import android.bluetooth.BluetoothGattCharacteristic
 import android.bluetooth.BluetoothProfile
+import android.util.Log
 
 object BtUtil {
 
@@ -62,8 +64,24 @@ object BtUtil {
             BluetoothGatt.GATT_SERVER -> "SERVER"
             BluetoothGatt.GATT_SUCCESS -> "SUCCESS"
             else -> "UKNOWN"
+        }
+    }
 
+    enum class BluetoothCharacteristicProperty(val bluetoothGattCharacteristicProperty: Int) {
+        PROPERTY_BROADCAST(BluetoothGattCharacteristic.PROPERTY_BROADCAST),
+        PROPERTY_EXTENDED_PROPS(BluetoothGattCharacteristic.PROPERTY_EXTENDED_PROPS),
+        PROPERTY_INDICATE(BluetoothGattCharacteristic.PROPERTY_INDICATE),
+        PROPERTY_NOTIFY(BluetoothGattCharacteristic.PROPERTY_NOTIFY),
+        PROPERTY_READ(BluetoothGattCharacteristic.PROPERTY_READ),
+        PROPERTY_SIGNED_WRITE(BluetoothGattCharacteristic.PROPERTY_SIGNED_WRITE),
+        PROPERTY_WRITE(BluetoothGattCharacteristic.PROPERTY_WRITE),
+        PROPERTY_WRITE_NO_RESPONSE(BluetoothGattCharacteristic.PROPERTY_WRITE_NO_RESPONSE);
 
+        companion object {
+            private val map = values().associateBy(BluetoothCharacteristicProperty::bluetoothGattCharacteristicProperty)
+            fun transform(property: Int): List<BluetoothCharacteristicProperty> {
+                return map.values.filter { it.bluetoothGattCharacteristicProperty and property != 0 }
+            }
         }
     }
 }

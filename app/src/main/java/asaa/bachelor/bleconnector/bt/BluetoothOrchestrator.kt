@@ -20,6 +20,10 @@ private const val TAG = "BluetoothOrchestrator"
 class BluetoothOrchestrator @Inject constructor(@ApplicationContext val context: Context) :
     IBluetoothOrchestrator {
 
+    init {
+        Log.v(TAG, "bluetooth Orchestrator created")
+    }
+
     private val btAdapter = BluetoothAdapter.getDefaultAdapter()
 
     val btDevices: MutableList<BluetoothDevice> = mutableListOf()
@@ -110,5 +114,15 @@ class BluetoothOrchestrator @Inject constructor(@ApplicationContext val context:
         }
         connection.disconnect()
     }
+
+    fun disconnectAll() {
+        btDeviceConnectionMap.forEach { device, connection ->
+            if (connection.connectionStatus == ConnectionStatus.CONNECTED) {
+                Log.v(TAG, "disconnect: ${device.address}")
+                connection.disconnect()
+            }
+        }
+    }
+
 
 }

@@ -8,6 +8,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.map
 import asaa.bachelor.bleconnector.bt.BluetoothConnection
 import asaa.bachelor.bleconnector.bt.BluetoothOrchestrator
+import asaa.bachelor.bleconnector.bt.BtUtil
 import asaa.bachelor.bleconnector.bt.ConnectionStatus
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
@@ -21,7 +22,19 @@ class ConnectionDetailViewModel @Inject constructor(val bluetoothOrchestrator: B
     val connectionState = MutableLiveData<String>("")
     val isConnected = connectionState.map { it == ConnectionStatus.CONNECTED.toString() }
     val services = MutableLiveData<List<BluetoothGattService>>()
-    val serviceUUIDs = services.map { it.joinToString(separator = "\n") { it.uuid.toString() } }
+    val serviceUUIDs = services.map {
+        return@map if (it.isNotEmpty()) {
+            it.joinToString("\n\n") { service ->
+                "${service.uuid}:\n" +
+                        service.characteristics.joinToString("\n\t>", prefix = "\t>") {
+                            it.uuid.toString() + "\n\t\t${BtUtil.BluetoothCharacteristicProperty.transform(it.properties).map { it.toString().replace("PROPERTY_", "") }}"
+                        }
+            }
+        } else {
+            "no Services"
+        }
+    }
+
 
     fun reconnect() {
         Log.v(TAG, "reconnect mac Addr: ${macAddress.value}")

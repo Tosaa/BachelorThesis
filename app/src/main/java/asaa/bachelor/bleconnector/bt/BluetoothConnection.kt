@@ -1,9 +1,6 @@
 package asaa.bachelor.bleconnector.bt
 
-import android.bluetooth.BluetoothDevice
-import android.bluetooth.BluetoothGatt
-import android.bluetooth.BluetoothGattCallback
-import android.bluetooth.BluetoothProfile
+import android.bluetooth.*
 import android.content.Context
 import android.os.Handler
 import android.os.Looper
@@ -68,18 +65,15 @@ class BluetoothConnection(private val device: BluetoothDevice) {
     }
 
 
-    inner class BluetoothCallback : BluetoothGattCallback() {
+    inner class BluetoothCallback : LogableBluetoothGattCallback() {
 
         init {
-            Log.v(TAG, "Create new BluetoothGattCallback for this(${device.address}) Connection")
+            Log.v(TAG, "Create new BluetoothGattCallback for this(${device.address}) connection")
         }
 
         override fun onServicesDiscovered(gatt: BluetoothGatt?, status: Int) {
             super.onServicesDiscovered(gatt, status)
-            Log.v(TAG, "service discovered for $gatt, status: $status")
-
             discoveryStatus = DiscoveryStatus.DISCOVERY_FINISHED(gatt?.services ?: emptyList())
-
             gatt?.services?.forEach {
                 Log.v(TAG,
                     it.characteristics.joinToString(
@@ -90,7 +84,12 @@ class BluetoothConnection(private val device: BluetoothDevice) {
             connectionStatus = ConnectionStatus.CONNECTED
         }
 
-        override fun onConnectionStateChange(gatt: BluetoothGatt, status: Int, newState: Int) {
+        override fun onConnectionStateChange(gatt: BluetoothGatt?, status: Int, newState: Int) {
+            super.onConnectionStateChange(gatt, status, newState)
+            if (gatt == null) {
+                Log.v(TAG, "gatt is null: $gatt")
+                return
+            }
             bluetoothGatt = gatt
             connectionStatus = BtUtil.resolveBluetoothProfileToConnectionStatus(newState)
             if (status == BluetoothGatt.GATT_SUCCESS) {

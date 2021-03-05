@@ -69,7 +69,7 @@
             style="@style/AppTheme.TextView.Title2"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Characteristics:" />
+            android:text="Services:" />
 
         <com.google.android.material.textview.MaterialTextView
             style="@style/AppTheme.TextView.Content"
@@ -77,6 +77,7 @@
             android:layout_height="wrap_content"
             android:layout_marginLeft="5dp"
             android:text="@{viewmodel.serviceUUIDs}" />
+
 
     </LinearLayout>
 </layout>
