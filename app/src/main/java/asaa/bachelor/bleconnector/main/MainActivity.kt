@@ -19,6 +19,7 @@ import androidx.navigation.fragment.NavHostFragment
 import androidx.work.impl.utils.ForceStopRunnable
 import asaa.bachelor.bleconnector.R
 import asaa.bachelor.bleconnector.bt.BluetoothOrchestrator
+import asaa.bachelor.bleconnector.bt.BondState
 import asaa.bachelor.bleconnector.bt.BtUtil
 import asaa.bachelor.bleconnector.databinding.ActivityMainBinding
 import dagger.hilt.android.AndroidEntryPoint
@@ -117,7 +118,7 @@ class MainActivity : AppCompatActivity() {
                     val device = getParcelableExtra<BluetoothDevice>(BluetoothDevice.EXTRA_DEVICE)
                     val previousBondState = getIntExtra(BluetoothDevice.EXTRA_PREVIOUS_BOND_STATE, -1)
                     val bondState = getIntExtra(BluetoothDevice.EXTRA_BOND_STATE, -1)
-                    val bondTransition = "${BtUtil.resolveBond(previousBondState)} to ${BtUtil.resolveBond(bondState)}"
+                    val bondTransition = "${BondState.get(previousBondState)} to ${BondState.get(bondState)}"
                     Timber.v("${device?.address} bond state changed | $bondTransition")
                 }
             }

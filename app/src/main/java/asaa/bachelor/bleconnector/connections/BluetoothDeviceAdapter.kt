@@ -7,9 +7,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.navigation.NavController
 import androidx.recyclerview.widget.RecyclerView
-import asaa.bachelor.bleconnector.bt.BluetoothOrchestrator
-import asaa.bachelor.bleconnector.bt.BtUtil
-import asaa.bachelor.bleconnector.bt.ConnectionStatus
+import asaa.bachelor.bleconnector.bt.*
 import asaa.bachelor.bleconnector.databinding.BluetoothDeviceItemBinding
 import timber.log.Timber
 
@@ -38,17 +36,14 @@ class BluetoothDeviceAdapter(
             val device = bluetoothDevice.device
             holder.bind(
                 device.address,
-                device.name ?: "UNKNOWN",
-                BtUtil.resolveBond(device.bondState),
-                BtUtil.resolveDeviceType(device.type),
+                device.name ?: "UNKNOWN DEVICENAME",
+                BondState.get(device.bondState)?.toString() ?: "UNKNOWN BONDSTATE",
+                DeviceType.get(device.type)?.toString() ?: "UNKNOWN DEVICETYPE",
                 position == expandedItem,
                 bluetoothDevice.isConnected
             )
             holder.buttonA.setOnClickListener {
                 Timber.v("on A clicked")
-                bluetoothOrchestrator.connect(
-                    btDevices[position].device.address
-                )
                 navController.navigate(ConnectionsFragmentDirections.actionConnectionsFragmentToConnectionDetail(btDevices[position].device.address))
             }
             holder.buttonShowConnection.setOnClickListener {

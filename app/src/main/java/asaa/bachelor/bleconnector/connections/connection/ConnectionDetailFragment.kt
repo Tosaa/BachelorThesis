@@ -1,15 +1,18 @@
 package asaa.bachelor.bleconnector.connections.connection
 
 import android.os.Bundle
-import android.util.Log
+import android.os.Handler
+import android.os.Looper
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.navArgs
 import asaa.bachelor.bleconnector.bt.*
 import asaa.bachelor.bleconnector.databinding.ConnectionDetailFragmentBinding
+import com.google.android.material.snackbar.Snackbar
 import dagger.hilt.android.AndroidEntryPoint
 import timber.log.Timber
 import javax.inject.Inject
@@ -33,8 +36,8 @@ class ConnectionDetailFragment : Fragment(), IStatusObserver {
         binding.lifecycleOwner = viewLifecycleOwner
         binding.viewmodel = viewModel
         macAddress = args.macAddress
-        viewModel.macAddress.postValue(macAddress)
         connection = bluetoothOrchestrator.connectionFor(macAddress)
+        connection?.let { viewModel.bluetoothDevice.postValue(it.device) }
         setupBinding()
         return binding.root
     }
@@ -42,37 +45,56 @@ class ConnectionDetailFragment : Fragment(), IStatusObserver {
 
     override fun onResume() {
         super.onResume()
-        Timber.v( "onResume")
+        Timber.v("onResume")
         connection?.addObserver(this)
     }
 
-    override fun onStatusChanged(newStatus: ConnectionStatus) {
-        super.onStatusChanged(newStatus)
-        viewModel.connectionState.postValue(newStatus::class.java.simpleName)
+    override fun onConnectionStateChanged(newStatus: ConnectionStatus) {
+        super.onConnectionStateChanged(newStatus)
+        viewModel.connectionState.postValue(newStatus)
+        if (newStatus is ConnectionStatus.DISCONNECTED) {
+            if (newStatus.reason.isNotEmpty())
+                Handler(Looper.getMainLooper()).post {
+                    Toast.makeText(requireContext(), "could not connect because of ${newStatus.reason}", Toast.LENGTH_SHORT).show()
+                }
+        }
     }
 
     override fun onDiscoveryStateChanged(newDiscoveryState: DiscoveryStatus) {
         super.onDiscoveryStateChanged(newDiscoveryState)
-        when (newDiscoveryState) {
-            DiscoveryStatus.DISCOVERY_STARTED -> viewModel.services.postValue(emptyList())
-            is DiscoveryStatus.DISCOVERY_FINISHED -> {
-                viewModel.services.postValue(newDiscoveryState.services)
-            }
-            is DiscoveryStatus.DISCOVERY_FAILED -> {
-            }
-        }
+        viewModel.discoverState.postValue(newDiscoveryState)
     }
 
+    override fun onBondStateChanged(bond: BondState) {
+        super.onBondStateChanged(bond)
+        viewModel.bondState.postValue(bond)
+    }
 
     override fun onPause() {
         super.onPause()
-        Timber.v( "onPause")
+        Timber.v("onPause")
         connection?.removeObserver(this)
     }
 
     private fun setupBinding() {
         binding.readBatteryStatusButton.setOnClickListener {
-            connection?.readCharacteristic(BtUtil.CommonServices.BatteryService.uuid, BtUtil.CommonCharacteristics.BatteryCharacteristic.uuid)
+            connection?.readCharacteristic(CommonServices.BatteryService.uuid, CommonCharacteristics.BatteryCharacteristic.uuid)
+        }
+        binding.connectionState.stateButton.setOnClickListener {
+            if (connection?.connectionStatus != viewModel.connectionState.value) {
+                Timber.w("ConnectionState of Viewmodel is not same as real ConnectionState: ${viewModel.connectionState.value} != ${connection?.connectionStatus}")
+            }
+            if (viewModel.isConnected.value == true) {
+                connection?.disconnect()
+            } else {
+                connection?.connect(requireContext(), false)
+            }
+        }
+        binding.bondingState.stateButton.setOnClickListener {
+            connection?.device?.createBond()
+        }
+        binding.discoveryState.stateButton.setOnClickListener {
+
         }
     }
 }

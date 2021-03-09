@@ -103,7 +103,12 @@ class BluetoothOrchestrator @Inject constructor(@ApplicationContext val context:
     }
 
     fun connectionFor(macAddress: String): BluetoothConnection? {
-        return btDeviceConnectionMap[btDevices.find { it.address == macAddress } ?: return null]
+        btDevices.find { it.address == macAddress }?.let {
+            if (btDeviceConnectionMap[it] == null) {
+                btDeviceConnectionMap[it] = BluetoothConnection(it)
+            }
+            return btDeviceConnectionMap[it]
+        } ?: return null
     }
 
     override fun disconnect(macAddress: String) {

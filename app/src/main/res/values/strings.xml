@@ -2,4 +2,6 @@
     <string name="app_name">Bluetooth Connector</string>
     <string name="examples">Examples</string>
     <string name="examplePreference">Example Preference</string>
+    <string name="bond">BOND</string>
+    <string name="discover">DISCOVER</string>
 </resources>
