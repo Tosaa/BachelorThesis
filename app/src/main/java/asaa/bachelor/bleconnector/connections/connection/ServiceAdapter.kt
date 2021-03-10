@@ -1,5 +1,5 @@
 package asaa.bachelor.bleconnector.connections.connection
-
+// TODO: Delete if showing exact services works better
 import android.bluetooth.BluetoothGattCharacteristic
 import android.bluetooth.BluetoothGattService
 import android.os.Handler
@@ -9,8 +9,8 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import asaa.bachelor.bleconnector.bt.BluetoothCharacteristicProperty
-import asaa.bachelor.bleconnector.bt.CommonCharacteristics
-import asaa.bachelor.bleconnector.bt.CommonServices
+import asaa.bachelor.bleconnector.bt.common.CommonCharacteristics
+import asaa.bachelor.bleconnector.bt.common.CommonServices
 import asaa.bachelor.bleconnector.databinding.ServiceItemBinding
 import timber.log.Timber
 

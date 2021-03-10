@@ -12,6 +12,10 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.navArgs
 import asaa.bachelor.bleconnector.bt.*
+import asaa.bachelor.bleconnector.bt.common.CommonCharacteristics
+import asaa.bachelor.bleconnector.bt.common.CommonServices
+import asaa.bachelor.bleconnector.bt.common.CustomCharacteristic
+import asaa.bachelor.bleconnector.bt.common.CustomService
 import asaa.bachelor.bleconnector.databinding.ConnectionDetailFragmentBinding
 import dagger.hilt.android.AndroidEntryPoint
 import timber.log.Timber
@@ -27,26 +31,6 @@ class ConnectionDetailFragment : Fragment(), IStatusObserver {
     val args: ConnectionDetailFragmentArgs by navArgs()
     lateinit var macAddress: String
     var connection: BluetoothConnection? = null
-    private val clickHandler: ClickHandler = object : ClickHandler {
-        override fun onReadClick(characteristic: BluetoothGattCharacteristic) {
-            Timber.v("onRead:${characteristic.toString()}")
-            connection?.readCharacteristic(characteristic)
-        }
-
-        override fun onWriteClick(characteristc: BluetoothGattCharacteristic, value: String) {
-            Timber.v("onWrite:${characteristc.toString()},$value")
-        }
-
-        override fun onNotifyClick(characteristc: BluetoothGattCharacteristic) {
-            Timber.v("onNotify:${characteristc.toString()}")
-        }
-
-        override fun onIndicateClick(characteristc: BluetoothGattCharacteristic) {
-            Timber.v("onIndicate:${characteristc.toString()}")
-        }
-
-    }
-    val adapter = ServiceAdapter(clickHandler)
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -83,12 +67,6 @@ class ConnectionDetailFragment : Fragment(), IStatusObserver {
     override fun onDiscoveryStateChanged(newDiscoveryState: DiscoveryStatus) {
         super.onDiscoveryStateChanged(newDiscoveryState)
         viewModel.discoverState.postValue(newDiscoveryState)
-        if (newDiscoveryState is DiscoveryStatus.DISCOVERED) {
-            adapter.updateServices(newDiscoveryState.services)
-            Handler(Looper.getMainLooper()).post {
-                adapter.notifyDataSetChanged()
-            }
-        }
     }
 
     override fun onBondStateChanged(bond: BondState) {
@@ -96,9 +74,44 @@ class ConnectionDetailFragment : Fragment(), IStatusObserver {
         viewModel.bondState.postValue(bond)
     }
 
+    override fun onWriteCharacteristic(characteristic: BluetoothGattCharacteristic, value: ByteArray, status: BluetoothGattStatus) {
+        super.onWriteCharacteristic(characteristic, value, status)
+        val writtenValue = value.joinToString(separator = "") { it.toChar().toString() }
+
+        when (status) {
+            BluetoothGattStatus.GATT_SUCCESS -> Handler(Looper.getMainLooper()).post { Toast.makeText(requireContext(), "wrote: $writtenValue", Toast.LENGTH_SHORT).show() }
+            BluetoothGattStatus.GATT_WRITE_NOT_PERMITTED -> {
+                Timber.w("Insufficient Permission to write:$characteristic")
+                return
+            }
+            else -> {
+                Timber.w("Error on Reading characteristic:$characteristic")
+                return
+            }
+        }
+    }
+
     override fun onReadCharacteristic(characteristic: BluetoothGattCharacteristic, value: ByteArray, status: BluetoothGattStatus) {
         super.onReadCharacteristic(characteristic, value, status)
-        adapter.readOn(characteristic, value)
+        val uuid = characteristic.uuid.toString()
+        val readValue = value.joinToString(separator = "") { it.toChar().toString() }
+        val characteristicMatch = CommonCharacteristics.mapIfExists(uuid) ?: CustomCharacteristic.mapIfExists(uuid)
+        when (status) {
+            BluetoothGattStatus.GATT_READ_NOT_PERMITTED -> {
+                Timber.w("Insufficient Permission to Read:$characteristic")
+                return
+            }
+            BluetoothGattStatus.GATT_SUCCESS -> {
+            }
+            else -> {
+                Timber.w("Error($status) on Reading characteristic:$characteristic")
+                return
+            }
+        }
+        when (characteristicMatch) {
+            CommonCharacteristics.BatteryLevel -> viewModel.batteryValue.postValue(readValue)
+            CustomCharacteristic.READ_CHARACTERISTIC -> viewModel.customReadValue.postValue(readValue)
+        }
     }
 
     override fun onPause() {
@@ -108,9 +121,7 @@ class ConnectionDetailFragment : Fragment(), IStatusObserver {
     }
 
     private fun setupBinding() {
-        binding.readBatteryStatusButton.setOnClickListener {
-            connection?.readCharacteristic(CommonServices.Battery.longUUID, CommonCharacteristics.BatteryLevel.longUUID)
-        }
+        // CONNECTION STATE
         binding.connectionState.stateButton.setOnClickListener {
             if (connection?.connectionStatus != viewModel.connectionState.value) {
                 Timber.w("ConnectionState of Viewmodel is not same as real ConnectionState: ${viewModel.connectionState.value} != ${connection?.connectionStatus}")
@@ -127,6 +138,28 @@ class ConnectionDetailFragment : Fragment(), IStatusObserver {
         binding.discoveryState.stateButton.setOnClickListener {
             connection?.discoverServices()
         }
-        binding.serviceCharacteristicRecylcerView.adapter = adapter
+        // BATTERY
+        binding.batteryStatus.readButton.setOnClickListener {
+            connection?.requestRead(CommonServices.Battery.longUUID, CommonCharacteristics.BatteryLevel.longUUID)
+        }
+        // Custom Service
+        binding.customStatus.readButton.setOnClickListener {
+            connection?.requestRead(CustomService.CUSTOM_SERVICE_1.uuid, CustomCharacteristic.READ_CHARACTERISTIC.uuid)
+        }
+        binding.customStatus.notifyButton.setOnClickListener {
+
+        }
+        binding.customStatus.indicateButton.setOnClickListener {
+
+        }
+        binding.customStatus.writeButton.setOnClickListener {
+            connection?.requestWrite(CustomService.CUSTOM_SERVICE_1.uuid, CustomCharacteristic.WRITE_CHARACTERISTIC.uuid, binding.customStatus.writeTextField.text.toString())
+        }
+        binding.customStatus.writeNoResponseButton.setOnClickListener {
+            connection?.requestWrite(CustomService.CUSTOM_SERVICE_1.uuid, CustomCharacteristic.WRITE_WO_RESPONSE_CHARACTERISTIC.uuid, binding.customStatus.writeTextField.text.toString())
+            binding.customStatus.writeTextField.setText("")
+        }
+
+
     }
 }

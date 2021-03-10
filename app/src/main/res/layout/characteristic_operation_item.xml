@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <data>
+
+        <import type="android.view.View" />
+
+        <variable
+            name="title"
+            type="String" />
+
+        <variable
+            name="readEnabled"
+            type="Boolean" />
+
+        <variable
+            name="readValue"
+            type="String" />
+
+        <variable
+            name="writeEnabled"
+            type="Boolean" />
+
+        <variable
+            name="notifyEnabled"
+            type="Boolean" />
+
+        <variable
+            name="notifyValue"
+            type="String" />
+
+        <variable
+            name="indicateEnabled"
+            type="Boolean" />
+
+        <variable
+            name="indicateValue"
+            type="String" />
+
+    </data>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+
+        <com.google.android.material.textview.MaterialTextView
+            style="@style/AppTheme.TextView.Title2"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@{title}"
+            tools:text="Service" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:padding="@dimen/deep_padding"
+android:visibility="@{(readEnabled ?? true) ? View.VISIBLE : View.GONE}">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/read_button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Read" />
+
+            <com.google.android.material.textview.MaterialTextView
+                style="@style/AppTheme.TextView.Content"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="right"
+                android:text="@{readValue}"
+                tools:text="None" />
+        </LinearLayout>
+
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:padding="@dimen/deep_padding"
+android:visibility="@{(notifyEnabled ?? true) ? View.VISIBLE : View.GONE}">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/notify_button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Notify" />
+
+            <com.google.android.material.textview.MaterialTextView
+                style="@style/AppTheme.TextView.Content"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="right"
+                android:text="@{notifyValue}" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:padding="@dimen/deep_padding"
+android:visibility="@{(indicateEnabled ?? true) ? View.VISIBLE : View.GONE}">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/indicate_button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="INDICATE" />
+
+            <com.google.android.material.textview.MaterialTextView
+                style="@style/AppTheme.TextView.Content"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="right"
+                android:text="@{indicateValue}" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:padding="@dimen/deep_padding"
+android:visibility="@{(writeEnabled ?? true) ? View.VISIBLE : View.GONE}">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/write_button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="WRITE" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/write_no_response_button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="WRITE NO RESPONSE" />
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/write_text_field"
+                style="@style/AppTheme.TextView.Content"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="right" />
+        </LinearLayout>
+
+
+    </LinearLayout>
+</layout>

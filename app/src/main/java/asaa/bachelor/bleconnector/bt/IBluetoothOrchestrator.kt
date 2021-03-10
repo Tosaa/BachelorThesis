@@ -15,7 +15,7 @@ interface IBluetoothOrchestrator {
 
 interface IStatusObserver {
     fun onReadCharacteristic(characteristic: BluetoothGattCharacteristic, value: ByteArray, status: BluetoothGattStatus) {}
-    fun onWriteCharacteristic() {}
+    fun onWriteCharacteristic(characteristic: BluetoothGattCharacteristic, value: ByteArray, status: BluetoothGattStatus) {}
     fun onConnectionStateChanged(newStatus: ConnectionStatus) {}
     fun onDiscoveryStateChanged(newDiscoveryState: DiscoveryStatus) {}
     fun onBondStateChanged(bond: BondState) {}

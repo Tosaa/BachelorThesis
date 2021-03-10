@@ -1,8 +1,27 @@
 package asaa.bachelor.bleconnector.bt
 
 import android.bluetooth.*
+import asaa.bachelor.bleconnector.bt.common.CommonCharacteristics
+import asaa.bachelor.bleconnector.bt.common.CommonServices
+import asaa.bachelor.bleconnector.bt.common.CustomCharacteristic
+import asaa.bachelor.bleconnector.bt.common.CustomService
+import timber.log.Timber
+import java.util.*
 
-object BtUtil
+object BtUtil {
+    fun serviceToString(uuid: String): String {
+        return CommonServices.mapIfExists(uuid)?.toString() ?: CustomService.mapIfExists(uuid)?.toString() ?: "unknown Service"
+    }
+
+    fun characteristicToString(uuid: String): String {
+        return CommonCharacteristics.mapIfExists(uuid)?.toString() ?: CustomCharacteristic.mapIfExists(uuid)?.toString() ?: "unknown Characteristic"
+    }
+
+    fun gattCharacteristicToCharacteristic(gattCharacteristic: BluetoothGattCharacteristic): Any? {
+        val uuid = gattCharacteristic.uuid.toString()
+        return CommonCharacteristics.mapIfExists(uuid) ?: CustomCharacteristic.mapIfExists(uuid)
+    }
+}
 
 enum class BondState(val bondState: Int) {
     BONDED(BluetoothDevice.BOND_BONDED),
@@ -111,6 +130,8 @@ enum class BluetoothCharacteristicProperty(val bluetoothGattCharacteristicProper
     SIGNED_WRITE(BluetoothGattCharacteristic.PROPERTY_SIGNED_WRITE),
     WRITE(BluetoothGattCharacteristic.PROPERTY_WRITE),
     WRITE_NO_RESPONSE(BluetoothGattCharacteristic.PROPERTY_WRITE_NO_RESPONSE);
+
+    fun isInCharacteristic(gattCharacteristic: BluetoothGattCharacteristic) = gattCharacteristic.properties and bluetoothGattCharacteristicProperty != 0
 
     companion object {
         private val map = values().associateBy(BluetoothCharacteristicProperty::bluetoothGattCharacteristicProperty)

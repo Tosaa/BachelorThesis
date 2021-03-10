@@ -85,6 +85,96 @@ class BluetoothConnection(val device: BluetoothDevice) {
         }
     }
 
+    private fun notifyOnWrite(characteristic: BluetoothGattCharacteristic, value: ByteArray, status: BluetoothGattStatus) {
+        observers.forEach {
+            it.onWriteCharacteristic(characteristic, value, status)
+        }
+    }
+
+
+    // operations on BluetoothConnection
+
+    fun requestWrite(service: String, characteristic: String, value: String): Boolean {
+        Timber.v("write:$value on  $service -> $characteristic")
+        val gattCharacteristic = getCharacteristic(service, characteristic) ?: return false
+        val properties = BluetoothCharacteristicProperty.transform(gattCharacteristic.properties)
+        val writeType = when {
+            properties.contains(BluetoothCharacteristicProperty.WRITE) -> BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT
+            properties.contains(BluetoothCharacteristicProperty.WRITE_NO_RESPONSE) -> BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE
+            else -> {
+                Timber.v("characteristic: $gattCharacteristic has not property write or write no response:${BluetoothCharacteristicProperty.transform(gattCharacteristic.properties)}")
+                return false
+            }
+        }
+        return writeCharacteristic(gattCharacteristic, writeType, value.toByteArray())
+    }
+
+    private fun writeCharacteristic(gattCharacteristic: BluetoothGattCharacteristic, writeType: Int, value: ByteArray): Boolean {
+        Timber.v("readCharacteristic: $gattCharacteristic, $writeType, $value")
+        bluetoothGatt?.let { gatt ->
+            gattCharacteristic.writeType = writeType
+            gattCharacteristic.value = value
+            gatt.writeCharacteristic(gattCharacteristic)
+            return true
+        }
+        Timber.w("could not write $value to characteristic")
+        return false
+    }
+
+    private fun getCharacteristic(service: String, characteristic: String): BluetoothGattCharacteristic? {
+        val serviceUUID = UUID.fromString(service)
+        val characteristicUUID = UUID.fromString(characteristic)
+        val gattCharacteristic = bluetoothGatt?.getService(serviceUUID)?.getCharacteristic(characteristicUUID)
+        if (gattCharacteristic == null)
+            Timber.w("could not find Characteristic of $service - $characteristic for device: $device")
+        return gattCharacteristic
+    }
+
+    fun requestRead(service: String, characteristic: String): Boolean {
+        Timber.v("requestRead: $service -> $characteristic")
+        val gattCharacteristic = getCharacteristic(service, characteristic) ?: return false
+        return requestRead(gattCharacteristic)
+    }
+
+    fun requestRead(gattCharacteristic: BluetoothGattCharacteristic): Boolean {
+        Timber.v("requestRead: $gattCharacteristic")
+        if (BluetoothCharacteristicProperty.READ.isInCharacteristic(gattCharacteristic)) {
+            readCharacteristic(gattCharacteristic)
+            return true
+        }
+        Timber.v("characteristic: $gattCharacteristic has not property read:${BluetoothCharacteristicProperty.transform(gattCharacteristic.properties)}")
+        return false
+
+    }
+
+    private fun readCharacteristic(gattCharacteristic: BluetoothGattCharacteristic) {
+        Timber.v("readCharacteristic: $gattCharacteristic ")
+        bluetoothGatt?.readCharacteristic(gattCharacteristic)
+    }
+
+
+    /*
+    * connect() should start discovery too.
+    * if service discovery failed it can be retried.
+    *
+    * */
+    fun discoverServices() {
+        Handler(Looper.getMainLooper()).run {
+            if (discoveryStatus != DiscoveryStatus.STARTED && discoveryStatus is DiscoveryStatus.DISCOVERED)
+                bluetoothGatt?.discoverServices()
+        }
+    }
+
+    fun connect(context: Context, autoConnect: Boolean) {
+        Timber.v("connect $device (autoconnect:$autoConnect)")
+        connectionStatus = ConnectionStatus.CONNECTING
+        device.connectGatt(context, autoConnect, callback, BluetoothDevice.TRANSPORT_LE)
+    }
+
+    fun disconnect() {
+        bluetoothGatt?.disconnect()
+    }
+
 
     inner class BluetoothCallback : LogableBluetoothGattCallback() {
 
@@ -95,14 +185,37 @@ class BluetoothConnection(val device: BluetoothDevice) {
         override fun onServicesDiscovered(gatt: BluetoothGatt?, status: Int) {
             super.onServicesDiscovered(gatt, status)
             discoveryStatus = DiscoveryStatus.DISCOVERED(gatt?.services ?: emptyList())
+            Timber.v(gatt?.services?.joinToString {
+                "${it.uuid.toString()}(${BtUtil.serviceToString(it.uuid.toString())})"
+            })
             gatt?.services?.forEach {
                 Timber.v(
-                    it.characteristics.joinToString(
-                        separator = ",",
-                    ) { it.uuid.toString() }
-                )
+                    it.characteristics.joinToString {
+                        "${it.uuid.toString()}(${BtUtil.characteristicToString(it.uuid.toString())})"
+                    })
             }
+
             connectionStatus = ConnectionStatus.CONNECTED
+        }
+
+        override fun onCharacteristicWrite(gatt: BluetoothGatt?, characteristic: BluetoothGattCharacteristic?, status: Int) {
+            super.onCharacteristicWrite(gatt, characteristic, status)
+            val gattStatus = BluetoothGattStatus.get(status)
+            Timber.v("gatt status: $gattStatus")
+            when (gattStatus) {
+                BluetoothGattStatus.GATT_SUCCESS -> {
+                    Timber.v("value was written: " + characteristic?.value?.joinToString(" ") { it.toChar().toString() } ?: "could not write value")
+                }
+                BluetoothGattStatus.GATT_READ_NOT_PERMITTED -> {
+                    Timber.v("not permitted to write value")
+                }
+                else -> {
+                }
+            }
+
+            characteristic?.let {
+                notifyOnWrite(it, it?.value ?: emptyArray<Byte>().toByteArray(), gattStatus ?: BluetoothGattStatus.GATT_FAILURE)
+            }
         }
 
         override fun onCharacteristicRead(gatt: BluetoothGatt?, characteristic: BluetoothGattCharacteristic?, status: Int) {
@@ -152,54 +265,6 @@ class BluetoothConnection(val device: BluetoothDevice) {
                 gatt.close()
             }
         }
-    }
-
-    // operations on BluetoothConnection
-
-    fun readCharacteristic(service: String, characteristic: String): Boolean {
-        Timber.v("read $service -> $characteristic")
-        val serviceUUID = UUID.fromString(service)
-        val characteristicUUID = UUID.fromString(characteristic)
-        val gattCharacteristic = bluetoothGatt?.getService(serviceUUID)?.getCharacteristic(characteristicUUID)
-        return if (BluetoothCharacteristicProperty.transform(gattCharacteristic?.properties ?: 0).contains(BluetoothCharacteristicProperty.READ)) {
-            Timber.v("start readCharacteristic")
-            bluetoothGatt?.readCharacteristic(gattCharacteristic)
-            true
-        } else {
-            Timber.v("characteristic: $gattCharacteristic is not readable()")
-            false
-        }
-    }
-
-    fun readCharacteristic(bluetoothGattCharacteristic: BluetoothGattCharacteristic): Boolean {
-        if (bluetoothGatt?.services?.any { it.characteristics.contains(bluetoothGattCharacteristic) } == true) {
-            bluetoothGatt?.readCharacteristic(bluetoothGattCharacteristic)
-            return true
-        }
-        return false
-    }
-
-    /*
-    * if service discovery failed it can be retried
-    *
-    * */
-    fun discoverServices() {
-        Handler(Looper.getMainLooper()).run {
-            if (discoveryStatus != DiscoveryStatus.STARTED && discoveryStatus is DiscoveryStatus.DISCOVERED)
-                bluetoothGatt?.discoverServices()
-        }
-    }
-
-    fun writeCharacteristic() {}
-
-    fun connect(context: Context, autoConnect: Boolean) {
-        Timber.v("connect $device (autoconnect:$autoConnect)")
-        connectionStatus = ConnectionStatus.CONNECTING
-        device.connectGatt(context, autoConnect, callback, BluetoothDevice.TRANSPORT_LE)
-    }
-
-    fun disconnect() {
-        bluetoothGatt?.disconnect()
     }
 
 }

@@ -1,4 +1,4 @@
-package asaa.bachelor.bleconnector.bt
+package asaa.bachelor.bleconnector.bt.common
 
 import java.util.*
 

@@ -1,11 +1,13 @@
 package asaa.bachelor.bleconnector.connections.connection
 
 import android.bluetooth.BluetoothDevice
-import android.bluetooth.BluetoothGattService
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.distinctUntilChanged
 import androidx.lifecycle.map
 import asaa.bachelor.bleconnector.bt.*
+import asaa.bachelor.bleconnector.bt.common.CommonServices
+import asaa.bachelor.bleconnector.bt.common.CustomService
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 
@@ -33,11 +35,21 @@ class ConnectionDetailViewModel @Inject constructor(val bluetoothOrchestrator: B
     val isDiscovered = discoverState.map { it is DiscoveryStatus.DISCOVERED }
 
     // Services
-    val services = MutableLiveData<List<BluetoothGattService>>()
-
-    val containsBatteryService = services.map {
-        it.any {
-            it.uuid == CommonServices.Battery.uuid
-        }
+    val services = discoverState.map {
+        if (it is DiscoveryStatus.DISCOVERED) it.services else emptyList()
     }
+
+    // Battery
+    val batteryService = services.distinctUntilChanged().map { it.find { CommonServices.mapIfExists(it.uuid.toString()) == CommonServices.Battery } }
+    val containsBatteryService = batteryService.distinctUntilChanged().map {
+        it != null
+    }
+    val batteryValue = MutableLiveData<String>("None")
+
+    // Custom Service
+    val customService = services.distinctUntilChanged().map { it.find { CustomService.mapIfExists(it.uuid.toString()) == CustomService.CUSTOM_SERVICE_1 } }
+    val containsCustomService = customService.distinctUntilChanged().map { it != null }
+    val customReadValue = MutableLiveData<String>("None")
+    val customNotifyValue = MutableLiveData<String>("None")
+    val customIndicateValue = MutableLiveData<String>("None")
 }
