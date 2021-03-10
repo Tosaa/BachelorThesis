@@ -90,9 +90,10 @@
             />
 
         <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/service_characteristic_recylcer_view"
+            app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:visibility="gone" />
+            android:layout_height="wrap_content" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/read_battery_status_button"

@@ -4,4 +4,5 @@
     <string name="examplePreference">Example Preference</string>
     <string name="bond">BOND</string>
     <string name="discover">DISCOVER</string>
+    <string name="example_uuid">00001801-0000-1000-8000-00805f9b34fb</string>
 </resources>

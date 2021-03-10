@@ -1,5 +1,6 @@
 package asaa.bachelor.bleconnector.bt
 
+import android.bluetooth.BluetoothGattCharacteristic
 import android.bluetooth.BluetoothGattService
 import java.util.*
 
@@ -13,7 +14,7 @@ interface IBluetoothOrchestrator {
 }
 
 interface IStatusObserver {
-    fun onReadCharacteristic() {}
+    fun onReadCharacteristic(characteristic: BluetoothGattCharacteristic, value: ByteArray, status: BluetoothGattStatus) {}
     fun onWriteCharacteristic() {}
     fun onConnectionStateChanged(newStatus: ConnectionStatus) {}
     fun onDiscoveryStateChanged(newDiscoveryState: DiscoveryStatus) {}

@@ -79,6 +79,12 @@ class BluetoothConnection(val device: BluetoothDevice) {
         }
     }
 
+    private fun notifyOnRead(characteristic: BluetoothGattCharacteristic, value: ByteArray, status: BluetoothGattStatus) {
+        observers.forEach {
+            it.onReadCharacteristic(characteristic, value, status)
+        }
+    }
+
 
     inner class BluetoothCallback : LogableBluetoothGattCallback() {
 
@@ -103,15 +109,19 @@ class BluetoothConnection(val device: BluetoothDevice) {
             super.onCharacteristicRead(gatt, characteristic, status)
             val gattStatus = BluetoothGattStatus.get(status)
             Timber.v("gatt status: $gattStatus")
+
             when (gattStatus) {
                 BluetoothGattStatus.GATT_SUCCESS -> {
-                    Timber.v(characteristic?.value?.joinToString(" ") { it.toChar().toString() } ?: "could not read value")
+                    Timber.v("value: " + characteristic?.value?.joinToString(" ") { it.toChar().toString() } ?: "could not read value")
                 }
                 BluetoothGattStatus.GATT_READ_NOT_PERMITTED -> {
                     Timber.v("not permitted to read value")
                 }
                 else -> {
                 }
+            }
+            characteristic?.let {
+                notifyOnRead(it, it?.value ?: emptyArray<Byte>().toByteArray(), gattStatus ?: BluetoothGattStatus.GATT_FAILURE)
             }
         }
 
@@ -159,6 +169,14 @@ class BluetoothConnection(val device: BluetoothDevice) {
             Timber.v("characteristic: $gattCharacteristic is not readable()")
             false
         }
+    }
+
+    fun readCharacteristic(bluetoothGattCharacteristic: BluetoothGattCharacteristic): Boolean {
+        if (bluetoothGatt?.services?.any { it.characteristics.contains(bluetoothGattCharacteristic) } == true) {
+            bluetoothGatt?.readCharacteristic(bluetoothGattCharacteristic)
+            return true
+        }
+        return false
     }
 
     /*

@@ -72,8 +72,8 @@ class MainActivity : AppCompatActivity() {
         }
 
         // Register Bond State Listener
-        Timber.v("register broadcast receiver for bond connections")
-        listenToBondStateChanges(this)
+        //Timber.v("register broadcast receiver for bond connections")
+        //listenToBondStateChanges(this)
     }
 
     fun checkSystemSettings() {
@@ -100,8 +100,6 @@ class MainActivity : AppCompatActivity() {
 
     override fun onStop() {
         super.onStop()
-        Timber.v("unregister broadcast receiver for bond connections")
-        applicationContext.unregisterReceiver(broadcastReceiver)
     }
 
     fun listenToBondStateChanges(context: Context) {

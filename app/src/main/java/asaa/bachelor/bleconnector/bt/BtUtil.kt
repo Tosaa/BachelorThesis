@@ -1,7 +1,6 @@
 package asaa.bachelor.bleconnector.bt
 
 import android.bluetooth.*
-import java.util.*
 
 object BtUtil
 
@@ -121,15 +120,3 @@ enum class BluetoothCharacteristicProperty(val bluetoothGattCharacteristicProper
     }
 }
 
-enum class CommonServices(val uuid: String) {
-    BatteryService("0000180f-0000-1000-8000-00805f9b34fb");
-
-    val asUUID = UUID.fromString(uuid)
-}
-
-enum class CommonCharacteristics(val uuid: String) {
-    BatteryCharacteristic("00002a19-0000-1000-8000-00805f9b34fb");
-
-    val asUUID = UUID.fromString(uuid)
-
-}

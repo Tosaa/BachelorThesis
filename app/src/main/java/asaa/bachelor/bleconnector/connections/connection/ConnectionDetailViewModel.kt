@@ -37,7 +37,7 @@ class ConnectionDetailViewModel @Inject constructor(val bluetoothOrchestrator: B
 
     val containsBatteryService = services.map {
         it.any {
-            it.uuid == CommonServices.BatteryService.asUUID
+            it.uuid == CommonServices.Battery.uuid
         }
     }
 }
