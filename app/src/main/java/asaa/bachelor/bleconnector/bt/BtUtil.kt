@@ -21,6 +21,11 @@ object BtUtil {
         val uuid = gattCharacteristic.uuid.toString()
         return CommonCharacteristics.mapIfExists(uuid) ?: CustomCharacteristic.mapIfExists(uuid)
     }
+
+    fun readableByteArray(byteArray: ByteArray): String {
+        return byteArray.joinToString(separator = ",") { it.toInt().toString() }
+
+    }
 }
 
 enum class BondState(val bondState: Int) {

@@ -32,6 +32,9 @@ class ConnectionDetailFragment : Fragment(), IStatusObserver {
     lateinit var macAddress: String
     var connection: BluetoothConnection? = null
 
+    var notifyActive = false
+    var indicateActive = false
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -91,26 +94,17 @@ class ConnectionDetailFragment : Fragment(), IStatusObserver {
         }
     }
 
-    override fun onReadCharacteristic(characteristic: BluetoothGattCharacteristic, value: ByteArray, status: BluetoothGattStatus) {
-        super.onReadCharacteristic(characteristic, value, status)
+    override fun onReadCharacteristic(characteristic: BluetoothGattCharacteristic, value: ByteArray) {
+        super.onReadCharacteristic(characteristic, value)
         val uuid = characteristic.uuid.toString()
         val readValue = value.joinToString(separator = "") { it.toChar().toString() }
         val characteristicMatch = CommonCharacteristics.mapIfExists(uuid) ?: CustomCharacteristic.mapIfExists(uuid)
-        when (status) {
-            BluetoothGattStatus.GATT_READ_NOT_PERMITTED -> {
-                Timber.w("Insufficient Permission to Read:$characteristic")
-                return
-            }
-            BluetoothGattStatus.GATT_SUCCESS -> {
-            }
-            else -> {
-                Timber.w("Error($status) on Reading characteristic:$characteristic")
-                return
-            }
-        }
+        Timber.v("onReadCharacteristic: received:$readValue for $characteristicMatch")
         when (characteristicMatch) {
             CommonCharacteristics.BatteryLevel -> viewModel.batteryValue.postValue(readValue)
             CustomCharacteristic.READ_CHARACTERISTIC -> viewModel.customReadValue.postValue(readValue)
+            CustomCharacteristic.INDICATE_CHARACTERISTIC -> viewModel.customIndicateValue.postValue(readValue)
+            CustomCharacteristic.NOTIFY_CHARACTERISTIC -> viewModel.customNotifyValue.postValue(readValue)
         }
     }
 
@@ -147,19 +141,34 @@ class ConnectionDetailFragment : Fragment(), IStatusObserver {
             connection?.requestRead(CustomService.CUSTOM_SERVICE_1.uuid, CustomCharacteristic.READ_CHARACTERISTIC.uuid)
         }
         binding.customStatus.notifyButton.setOnClickListener {
-
+            connection?.let { conn ->
+                if (notifyActive) {
+                    Timber.v("stop Notify")
+                    notifyActive = !conn.requestStopNotifyOrIndicate(CustomService.CUSTOM_SERVICE_1.uuid, CustomCharacteristic.NOTIFY_CHARACTERISTIC.uuid)
+                } else {
+                    Timber.v("start Notify")
+                    notifyActive = conn.requestStartNotify(CustomService.CUSTOM_SERVICE_1.uuid, CustomCharacteristic.NOTIFY_CHARACTERISTIC.uuid)
+                }
+            }
         }
         binding.customStatus.indicateButton.setOnClickListener {
-
+            connection?.let { conn ->
+                if (indicateActive) {
+                    Timber.v("stop Indicate")
+                    indicateActive = !conn.requestStopNotifyOrIndicate(CustomService.CUSTOM_SERVICE_1.uuid, CustomCharacteristic.INDICATE_CHARACTERISTIC.uuid)
+                } else {
+                    Timber.v("start Indicate")
+                    indicateActive = conn.requestStartIndicate(CustomService.CUSTOM_SERVICE_1.uuid, CustomCharacteristic.INDICATE_CHARACTERISTIC.uuid)
+                }
+            }
         }
         binding.customStatus.writeButton.setOnClickListener {
             connection?.requestWrite(CustomService.CUSTOM_SERVICE_1.uuid, CustomCharacteristic.WRITE_CHARACTERISTIC.uuid, binding.customStatus.writeTextField.text.toString())
+            binding.customStatus.writeTextField.setText("")
         }
         binding.customStatus.writeNoResponseButton.setOnClickListener {
             connection?.requestWrite(CustomService.CUSTOM_SERVICE_1.uuid, CustomCharacteristic.WRITE_WO_RESPONSE_CHARACTERISTIC.uuid, binding.customStatus.writeTextField.text.toString())
             binding.customStatus.writeTextField.setText("")
         }
-
-
     }
 }
