@@ -104,7 +104,7 @@ class BluetoothConnection(val device: BluetoothDevice) {
             properties.contains(BluetoothCharacteristicProperty.WRITE) -> BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT
             properties.contains(BluetoothCharacteristicProperty.WRITE_NO_RESPONSE) -> BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE
             else -> {
-                Timber.d("characteristic: $gattCharacteristic has not property write or write no response:${BluetoothCharacteristicProperty.transform(gattCharacteristic.properties)}")
+                Timber.w("characteristic: $gattCharacteristic has not property write or write no response:${BluetoothCharacteristicProperty.transform(gattCharacteristic.properties)}")
                 return false
             }
         }

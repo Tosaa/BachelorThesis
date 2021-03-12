@@ -27,6 +27,9 @@ class MainFragment : Fragment() {
         binding.btConnectionsButton.setOnClickListener {
             findNavController().navigate(R.id.connectionsFragment)
         }
+        binding.saveLogsBtn.setOnClickListener {
+            (requireActivity().application as ExampleApplication)?.saveLogs()
+        }
 
         return binding.root
     }
