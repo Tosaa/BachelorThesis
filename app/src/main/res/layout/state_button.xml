@@ -39,7 +39,7 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center"
             android:text="@{text}"
-            android:visibility="@{isButtonVisible ? View.VISIBLE : View.GONE}"
+            android:visibility="@{isButtonVisible ? View.VISIBLE : View.INVISIBLE}"
             tools:text="Connect" />
     </LinearLayout>
 </layout>

@@ -32,9 +32,6 @@ class ConnectionDetailFragment : Fragment(), IStatusObserver {
     lateinit var macAddress: String
     var connection: BluetoothConnection? = null
 
-    var notifyActive = false
-    var indicateActive = false
-
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -60,10 +57,12 @@ class ConnectionDetailFragment : Fragment(), IStatusObserver {
         super.onConnectionStateChanged(newStatus)
         viewModel.connectionState.postValue(newStatus)
         if (newStatus is ConnectionStatus.DISCONNECTED) {
-            if (newStatus.reason.isNotEmpty())
-                Handler(Looper.getMainLooper()).post {
-                    Toast.makeText(requireContext(), "could not connect because of ${newStatus.reason}", Toast.LENGTH_SHORT).show()
-                }
+            // reset Fragment
+            viewModel.isNotifyActive.postValue(false)
+            viewModel.isIndicateActive.postValue(false)
+            Handler(Looper.getMainLooper()).post {
+                Toast.makeText(requireContext(), "could not connect because of ${newStatus.reason}", Toast.LENGTH_SHORT).show()
+            }
         }
     }
 
@@ -142,23 +141,31 @@ class ConnectionDetailFragment : Fragment(), IStatusObserver {
         }
         binding.customStatus.notifyButton.setOnClickListener {
             connection?.let { conn ->
-                if (notifyActive) {
+                val isNotifyActive = viewModel.isNotifyActive.value ?: false
+
+                if (isNotifyActive) {
                     Timber.v("stop Notify")
-                    notifyActive = !conn.requestStopNotifyOrIndicate(CustomService.CUSTOM_SERVICE_1.uuid, CustomCharacteristic.NOTIFY_CHARACTERISTIC.uuid)
+                    !conn.requestStopNotifyOrIndicate(CustomService.CUSTOM_SERVICE_1.uuid, CustomCharacteristic.NOTIFY_CHARACTERISTIC.uuid)
                 } else {
                     Timber.v("start Notify")
-                    notifyActive = conn.requestStartNotify(CustomService.CUSTOM_SERVICE_1.uuid, CustomCharacteristic.NOTIFY_CHARACTERISTIC.uuid)
+                    conn.requestStartNotify(CustomService.CUSTOM_SERVICE_1.uuid, CustomCharacteristic.NOTIFY_CHARACTERISTIC.uuid)
+                }.let { isActive ->
+                    viewModel.isNotifyActive.postValue(isActive)
                 }
+
             }
         }
         binding.customStatus.indicateButton.setOnClickListener {
             connection?.let { conn ->
-                if (indicateActive) {
+                val isIndicateActive = viewModel.isIndicateActive.value ?: false
+                if (isIndicateActive) {
                     Timber.v("stop Indicate")
-                    indicateActive = !conn.requestStopNotifyOrIndicate(CustomService.CUSTOM_SERVICE_1.uuid, CustomCharacteristic.INDICATE_CHARACTERISTIC.uuid)
+                    !conn.requestStopNotifyOrIndicate(CustomService.CUSTOM_SERVICE_1.uuid, CustomCharacteristic.INDICATE_CHARACTERISTIC.uuid)
                 } else {
                     Timber.v("start Indicate")
-                    indicateActive = conn.requestStartIndicate(CustomService.CUSTOM_SERVICE_1.uuid, CustomCharacteristic.INDICATE_CHARACTERISTIC.uuid)
+                    conn.requestStartIndicate(CustomService.CUSTOM_SERVICE_1.uuid, CustomCharacteristic.INDICATE_CHARACTERISTIC.uuid)
+                }.let { isActive ->
+                    viewModel.isIndicateActive.postValue(isActive)
                 }
             }
         }

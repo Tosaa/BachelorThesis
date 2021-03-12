@@ -47,9 +47,12 @@ class ConnectionDetailViewModel @Inject constructor(val bluetoothOrchestrator: B
     val batteryValue = MutableLiveData<String>("None")
 
     // Custom Service
+
     val customService = services.distinctUntilChanged().map { it.find { CustomService.mapIfExists(it.uuid.toString()) == CustomService.CUSTOM_SERVICE_1 } }
     val containsCustomService = customService.distinctUntilChanged().map { it != null }
     val customReadValue = MutableLiveData<String>("None")
     val customNotifyValue = MutableLiveData<String>("None")
+    val isNotifyActive = MutableLiveData<Boolean>(false)
     val customIndicateValue = MutableLiveData<String>("None")
+    val isIndicateActive = MutableLiveData<Boolean>(false)
 }

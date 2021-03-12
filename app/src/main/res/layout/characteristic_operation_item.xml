@@ -31,6 +31,10 @@
             type="String" />
 
         <variable
+            name="isNotifyActive"
+            type="Boolean" />
+
+        <variable
             name="indicateEnabled"
             type="Boolean" />
 
@@ -38,6 +42,9 @@
             name="indicateValue"
             type="String" />
 
+        <variable
+            name="isIndicateActive"
+            type="Boolean" />
     </data>
 
     <LinearLayout
@@ -57,7 +64,7 @@
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:padding="@dimen/deep_padding"
-android:visibility="@{(readEnabled ?? true) ? View.VISIBLE : View.GONE}">
+            android:visibility="@{(readEnabled ?? true) ? View.VISIBLE : View.GONE}">
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/read_button"
@@ -81,12 +88,13 @@ android:visibility="@{(readEnabled ?? true) ? View.VISIBLE : View.GONE}">
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:padding="@dimen/deep_padding"
-android:visibility="@{(notifyEnabled ?? true) ? View.VISIBLE : View.GONE}">
+            android:visibility="@{(notifyEnabled ?? true) ? View.VISIBLE : View.GONE}">
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/notify_button"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:backgroundTint="@{(isNotifyActive ?? true) ?  @color/colorActive :@color/colorInactive}"
                 android:text="Notify" />
 
             <com.google.android.material.textview.MaterialTextView
@@ -103,12 +111,13 @@ android:visibility="@{(notifyEnabled ?? true) ? View.VISIBLE : View.GONE}">
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:padding="@dimen/deep_padding"
-android:visibility="@{(indicateEnabled ?? true) ? View.VISIBLE : View.GONE}">
+            android:visibility="@{(indicateEnabled ?? true) ? View.VISIBLE : View.GONE}">
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/indicate_button"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:backgroundTint="@{(isIndicateActive ?? true) ?  @color/colorActive :@color/colorInactive}"
                 android:text="INDICATE" />
 
             <com.google.android.material.textview.MaterialTextView
@@ -125,7 +134,7 @@ android:visibility="@{(indicateEnabled ?? true) ? View.VISIBLE : View.GONE}">
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:padding="@dimen/deep_padding"
-android:visibility="@{(writeEnabled ?? true) ? View.VISIBLE : View.GONE}">
+            android:visibility="@{(writeEnabled ?? true) ? View.VISIBLE : View.GONE}">
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/write_button"

@@ -122,7 +122,7 @@ class BluetoothOrchestrator @Inject constructor(@ApplicationContext val context:
     }
 
     fun disconnectAll() {
-        btDeviceConnectionMap.forEach { device, connection ->
+        btDeviceConnectionMap.forEach { (device, connection) ->
             if (connection.connectionStatus == ConnectionStatus.CONNECTED) {
                 Timber.v("disconnect: ${device.address}")
                 connection.disconnect()

@@ -4,17 +4,17 @@ import android.bluetooth.*
 import android.content.Context
 import android.os.Handler
 import android.os.Looper
+import asaa.bachelor.bleconnector.bt.common.CommonDescriptors
 import timber.log.Timber
 import java.util.*
 
 private const val TAG: String = "BluetoothConnection"
-const val CCCD_UUID = "00002902-0000-1000-8000-00805f9b34fb"
 
 class BluetoothConnection(val device: BluetoothDevice) {
 
 
     init {
-        Timber.v("create BluetoothConnection for $device")
+        Timber.d("create BluetoothConnection for $device")
     }
 
     var bluetoothGatt: BluetoothGatt? = null
@@ -23,21 +23,24 @@ class BluetoothConnection(val device: BluetoothDevice) {
     var connectionStatus: ConnectionStatus = ConnectionStatus.DISCONNECTED("")
         set(value) {
             notifyConnectionStateChanged(value)
-            Timber.v("connection Status Changed: $field -> $value")
+            Timber.d("connection Status Changed: $field -> $value")
+            if (value is ConnectionStatus.DISCONNECTED) {
+                bluetoothGatt = null
+            }
             field = value
         }
 
     var discoveryStatus: DiscoveryStatus = DiscoveryStatus.NOT_DISCOVERED
         set(value) {
             notifyDiscoveryStateChanged(value)
-            Timber.v("discovery Status Changed: $field -> $value")
+            Timber.d("discovery Status Changed: $field -> $value")
             field = value
         }
 
     var bondState: BondState = BondState.get(device.bondState) ?: BondState.NOT_BOND
         set(value) {
             notifyBondStateChanged(value)
-            Timber.v("bond Status Changed: $field -> $value")
+            Timber.d("bond Status Changed: $field -> $value")
             field = value
         }
 
@@ -49,7 +52,7 @@ class BluetoothConnection(val device: BluetoothDevice) {
 
 
     fun addObserver(o: IStatusObserver) {
-        Timber.v("add Observer: $o")
+        Timber.d("add Observer: $o")
         observers.add(o)
         o.onConnectionStateChanged(connectionStatus)
         o.onDiscoveryStateChanged(discoveryStatus)
@@ -94,14 +97,14 @@ class BluetoothConnection(val device: BluetoothDevice) {
     // operations on BluetoothConnection
 
     fun requestWrite(service: String, characteristic: String, value: String): Boolean {
-        Timber.v("write: $value on  $service -> $characteristic")
+        Timber.d("write: $value on  $service -> $characteristic")
         val gattCharacteristic = getCharacteristic(service, characteristic) ?: return false
         val properties = BluetoothCharacteristicProperty.transform(gattCharacteristic.properties)
         val writeType = when {
             properties.contains(BluetoothCharacteristicProperty.WRITE) -> BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT
             properties.contains(BluetoothCharacteristicProperty.WRITE_NO_RESPONSE) -> BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE
             else -> {
-                Timber.v("characteristic: $gattCharacteristic has not property write or write no response:${BluetoothCharacteristicProperty.transform(gattCharacteristic.properties)}")
+                Timber.d("characteristic: $gattCharacteristic has not property write or write no response:${BluetoothCharacteristicProperty.transform(gattCharacteristic.properties)}")
                 return false
             }
         }
@@ -109,7 +112,7 @@ class BluetoothConnection(val device: BluetoothDevice) {
     }
 
     private fun writeCharacteristic(gattCharacteristic: BluetoothGattCharacteristic, writeType: Int, value: ByteArray): Boolean {
-        Timber.v("writeCharacteristic: $gattCharacteristic, $writeType, $value")
+        Timber.d("writeCharacteristic: $gattCharacteristic, $writeType, $value")
         bluetoothGatt?.let { gatt ->
             gattCharacteristic.writeType = writeType
             gattCharacteristic.value = value
@@ -124,58 +127,68 @@ class BluetoothConnection(val device: BluetoothDevice) {
         val serviceUUID = UUID.fromString(service)
         val characteristicUUID = UUID.fromString(characteristic)
         val gattCharacteristic = bluetoothGatt?.getService(serviceUUID)?.getCharacteristic(characteristicUUID)
+        Timber.d("resolve Characteristic: $service - $characteristic - $gattCharacteristic")
         if (gattCharacteristic == null)
             Timber.w("could not find Characteristic of $service - $characteristic for device: $device")
         return gattCharacteristic
     }
 
     fun requestRead(service: String, characteristic: String): Boolean {
-        Timber.v("requestRead: $service -> $characteristic")
+        Timber.d("requestRead: $service -> $characteristic")
         val gattCharacteristic = getCharacteristic(service, characteristic) ?: return false
         return requestRead(gattCharacteristic)
     }
 
     fun requestRead(gattCharacteristic: BluetoothGattCharacteristic): Boolean {
-        Timber.v("requestRead: $gattCharacteristic")
+        Timber.d("requestRead: $gattCharacteristic")
         if (BluetoothCharacteristicProperty.READ.isInCharacteristic(gattCharacteristic)) {
             readCharacteristic(gattCharacteristic)
             return true
         }
-        Timber.v("characteristic: $gattCharacteristic has not property read:${BluetoothCharacteristicProperty.transform(gattCharacteristic.properties)}")
+        Timber.d("characteristic: $gattCharacteristic has not property read:${BluetoothCharacteristicProperty.transform(gattCharacteristic.properties)}")
         return false
 
     }
 
     private fun readCharacteristic(gattCharacteristic: BluetoothGattCharacteristic) {
-        Timber.v("readCharacteristic: $gattCharacteristic ")
+        Timber.d("readCharacteristic: $gattCharacteristic ")
         bluetoothGatt?.readCharacteristic(gattCharacteristic)
     }
 
 
     fun requestStopNotifyOrIndicate(service: String, characteristic: String): Boolean {
-        Timber.v("requestStopNotifyOrIndicate:  $service -> $characteristic")
+        Timber.d("requestStopNotifyOrIndicate:  $service -> $characteristic")
         val gattCharacteristic = getCharacteristic(service, characteristic) ?: return false
-        val descriptor = gattCharacteristic.getDescriptor(UUID.fromString(CCCD_UUID)) ?: return false
+        val descriptor = gattCharacteristic.getDescriptor(CommonDescriptors.ClientCharacteristicConfiguration.uuid) ?: return false
         return changeNotificationStatus(gattCharacteristic, descriptor, BluetoothGattDescriptor.DISABLE_NOTIFICATION_VALUE)
     }
 
     fun requestStartIndicate(service: String, characteristic: String): Boolean {
-        Timber.v("requestStartIndicate:  $service -> $characteristic")
+        Timber.d("requestStartIndicate:  $service -> $characteristic")
         val gattCharacteristic = getCharacteristic(service, characteristic) ?: return false
-        val descriptor = gattCharacteristic.getDescriptor(UUID.fromString(CCCD_UUID)) ?: return false
+
+        val descriptor = gattCharacteristic.getDescriptor(CommonDescriptors.ClientCharacteristicConfiguration.uuid)
+        if (descriptor == null) {
+            Timber.w("descriptor for Indicate (CCCD) was not found on characteristic: ${gattCharacteristic.descriptors}")
+            return false
+        }
         return changeNotificationStatus(gattCharacteristic, descriptor, BluetoothGattDescriptor.ENABLE_INDICATION_VALUE)
     }
 
     fun requestStartNotify(service: String, characteristic: String): Boolean {
-        Timber.v("requestStartNotify:  $service -> $characteristic")
+        Timber.d("requestStartNotify:  $service -> $characteristic")
         val gattCharacteristic = getCharacteristic(service, characteristic) ?: return false
 
-        val descriptor = gattCharacteristic.getDescriptor(UUID.fromString(CCCD_UUID)) ?: return false
+        val descriptor = gattCharacteristic.getDescriptor(CommonDescriptors.ClientCharacteristicConfiguration.uuid)
+        if (descriptor == null) {
+            Timber.w("descriptor for Notify (CCCD) was not found on characteristic: ${gattCharacteristic.descriptors}")
+            return false
+        }
         return changeNotificationStatus(gattCharacteristic, descriptor, BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE)
     }
 
     private fun changeNotificationStatus(gattCharacteristic: BluetoothGattCharacteristic, descriptor: BluetoothGattDescriptor, payload: ByteArray): Boolean {
-        Timber.v("changeNotificationStatus: $gattCharacteristic, $descriptor, ${BtUtil.readableByteArray(payload)}")
+        Timber.d("changeNotificationStatus: $gattCharacteristic, $descriptor, ${BtUtil.readableByteArray(payload)}")
         when (payload) {
             BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE -> {
                 if (BluetoothCharacteristicProperty.NOTIFY.isInCharacteristic(gattCharacteristic)) {
@@ -213,7 +226,7 @@ class BluetoothConnection(val device: BluetoothDevice) {
     }
 
     fun writeDescriptor(descriptor: BluetoothGattDescriptor, payload: ByteArray): Boolean {
-        Timber.v("writeDescriptor: $descriptor, ${BtUtil.readableByteArray(payload)}")
+        Timber.d("writeDescriptor: $descriptor, ${BtUtil.readableByteArray(payload)}")
         bluetoothGatt?.let {
             descriptor.value = payload
             it.writeDescriptor(descriptor)
@@ -230,6 +243,7 @@ class BluetoothConnection(val device: BluetoothDevice) {
     *
     * */
     fun discoverServices() {
+        Timber.i("Discover Services")
         Handler(Looper.getMainLooper()).run {
             if (discoveryStatus != DiscoveryStatus.STARTED && discoveryStatus is DiscoveryStatus.DISCOVERED)
                 bluetoothGatt?.discoverServices()
@@ -237,19 +251,20 @@ class BluetoothConnection(val device: BluetoothDevice) {
     }
 
     fun connect(context: Context, autoConnect: Boolean) {
-        Timber.v("connect $device (autoconnect:$autoConnect)")
+        Timber.i("connect $device (autoconnect:$autoConnect)")
         connectionStatus = ConnectionStatus.CONNECTING
         device.connectGatt(context, autoConnect, callback, BluetoothDevice.TRANSPORT_LE)
     }
 
     fun disconnect() {
+        Timber.i("disconnect")
         bluetoothGatt?.disconnect()
     }
 
     inner class BluetoothCallback : LogableBluetoothGattCallback() {
 
         init {
-            Timber.v("Create new BluetoothGattCallback for this(${device.address}) connection")
+            Timber.d("Create new BluetoothGattCallback for this(${device.address}) connection")
         }
 
         override fun onDescriptorRead(gatt: BluetoothGatt?, descriptor: BluetoothGattDescriptor?, status: Int) {
@@ -270,11 +285,11 @@ class BluetoothConnection(val device: BluetoothDevice) {
         override fun onServicesDiscovered(gatt: BluetoothGatt?, status: Int) {
             super.onServicesDiscovered(gatt, status)
             discoveryStatus = DiscoveryStatus.DISCOVERED(gatt?.services ?: emptyList())
-            Timber.v(gatt?.services?.joinToString {
+            Timber.d(gatt?.services?.joinToString {
                 "${it.uuid.toString()}(${BtUtil.serviceToString(it.uuid.toString())})"
             })
             gatt?.services?.forEach {
-                Timber.v(
+                Timber.d(
                     it.characteristics.joinToString {
                         "${it.uuid.toString()}(${BtUtil.characteristicToString(it.uuid.toString())})"
                     })
@@ -286,16 +301,16 @@ class BluetoothConnection(val device: BluetoothDevice) {
         override fun onCharacteristicWrite(gatt: BluetoothGatt?, characteristic: BluetoothGattCharacteristic?, status: Int) {
             super.onCharacteristicWrite(gatt, characteristic, status)
             val gattStatus = BluetoothGattStatus.get(status)
-            Timber.v("gatt status: $gattStatus")
+            Timber.d("gatt status: $gattStatus")
             when (gattStatus) {
                 BluetoothGattStatus.GATT_SUCCESS -> {
-                    Timber.v("value was written: " + characteristic?.value?.joinToString(" ") { it.toChar().toString() } ?: "could not write value")
+                    Timber.d("value was written: " + characteristic?.value?.joinToString(" ") { it.toChar().toString() } ?: "could not write value")
                 }
                 BluetoothGattStatus.GATT_READ_NOT_PERMITTED -> {
-                    Timber.v("not permitted to write value")
+                    Timber.d("not permitted to write value")
                 }
                 BluetoothGattStatus.GATT_INVALID_ATTRIBUTE_LENGTH -> {
-                    Timber.v("The written Value was to big for the current ATT MTU size")
+                    Timber.d("The written Value was to big for the current ATT MTU size")
                 }
                 else -> {
                 }
@@ -309,14 +324,14 @@ class BluetoothConnection(val device: BluetoothDevice) {
         override fun onCharacteristicRead(gatt: BluetoothGatt?, characteristic: BluetoothGattCharacteristic?, status: Int) {
             super.onCharacteristicRead(gatt, characteristic, status)
             val gattStatus = BluetoothGattStatus.get(status)
-            Timber.v("gatt status: $gattStatus")
+            Timber.d("gatt status: $gattStatus")
 
             when (gattStatus) {
                 BluetoothGattStatus.GATT_SUCCESS -> {
-                    Timber.v("value: " + characteristic?.value?.joinToString(" ") { it.toChar().toString() } ?: "could not read value")
+                    Timber.d("value: " + characteristic?.value?.joinToString(" ") { it.toChar().toString() } ?: "could not read value")
                 }
                 BluetoothGattStatus.GATT_READ_NOT_PERMITTED -> {
-                    Timber.v("not permitted to read value")
+                    Timber.d("not permitted to read value")
                 }
                 else -> {
                 }
@@ -329,7 +344,7 @@ class BluetoothConnection(val device: BluetoothDevice) {
         override fun onConnectionStateChange(gatt: BluetoothGatt?, status: Int, newState: Int) {
             super.onConnectionStateChange(gatt, status, newState)
             if (gatt == null) {
-                Timber.v("gatt is null: $gatt")
+                Timber.w("gatt is null: $gatt")
                 return
             }
             bluetoothGatt = gatt
