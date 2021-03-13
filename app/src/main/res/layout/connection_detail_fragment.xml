@@ -75,9 +75,9 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    app:isButtonVisible="@{!viewmodel.isDiscovered()}"
+                    app:isButtonVisible="@{true}"
                     app:state="@{viewmodel.discoverState.toString()}"
-                    app:text="@{@string/discover}"
+                    app:text="@{viewmodel.isDiscovered() ? @string/show_info : @string/discover}"
 
                     />
             </LinearLayout>

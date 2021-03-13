@@ -129,7 +129,24 @@ class ConnectionDetailFragment : Fragment(), IStatusObserver {
             connection?.device?.createBond()
         }
         binding.discoveryState.stateButton.setOnClickListener {
-            connection?.discoverServices()
+            if (viewModel.isDiscovered.value == true) {
+                viewModel.discoverState.value.let { discoveryState ->
+                    if (discoveryState is DiscoveryStatus.DISCOVERED) {
+                        Timber.v("show DeviceInfoFragment")
+                        discoveryState?.services.joinToString(separator = "\n\n") {
+                            BtUtil.serviceToString(it.uuid.toString()) + "\n" +
+                                    it.characteristics.joinToString("\n-", prefix = "-") {
+                                        BtUtil.characteristicToString(it.uuid.toString())
+                                    }
+                        }.let {
+                            DeviceInfoFragment.newInstance(it).show(parentFragmentManager, "service_characteristic_dialog")
+                        }
+
+                    }
+                }
+            } else {
+                connection?.discoverServices()
+            }
         }
         // BATTERY
         binding.batteryStatus.readButton.setOnClickListener {
