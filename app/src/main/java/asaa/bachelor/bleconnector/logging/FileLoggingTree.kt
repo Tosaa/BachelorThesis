@@ -1,10 +1,7 @@
 package asaa.bachelor.bleconnector.logging
 
 import android.content.Context
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.*
 import timber.log.Timber
 import java.io.File
 import java.io.FileWriter
@@ -19,8 +16,9 @@ class FileLoggingTree(val loggingTree: Timber.DebugTree, private val context: Co
     private val date = SimpleDateFormat("yyyy-MM-dd", Locale.GERMANY).format(Date())
     var file: File? = generateFile(path, "$date.log")
 
+    @Synchronized
     override fun log(priority: Int, tag: String?, message: String, t: Throwable?) {
-        val currTimeStamp = SimpleDateFormat("hh:mm:ss:SSS", Locale.GERMANY).format(Date())
+        val currTimeStamp = SimpleDateFormat("yyyy-MM-dd HH:mm:ss:SSS", Locale.GERMANY).format(Date())
         GlobalScope.launch {
             withContext(Dispatchers.IO) {
                 listOf<String>(currTimeStamp, priority.toString(), tag ?: "NO_TAG", message, t.toString() ?: "").joinToString(separator = delimiter.toString()).let {
@@ -33,21 +31,24 @@ class FileLoggingTree(val loggingTree: Timber.DebugTree, private val context: Co
         }
     }
 
+    @Synchronized
     fun writeToFile() {
         GlobalScope.launch {
             withContext(Dispatchers.IO) {
-                loggingTree.i("write To file: ${file?.absolutePath}")
-                if (file == null) return@withContext
-                try {
-                    FileWriter(file, true).apply {
-                        append(logsCache.joinToString("\n", prefix = "\n"))
-                        flush()
-                        close()
+                runBlocking {
+                    loggingTree.i("write To file: ${file?.absolutePath}")
+                    if (file == null) return@runBlocking
+                    try {
+                        FileWriter(file, true).apply {
+                            append(logsCache.joinToString("\n", prefix = "\n"))
+                            flush()
+                            close()
+                        }
+                        logsCache.clear()
+                        loggingTree.i("saved logs")
+                    } catch (e: Exception) {
+                        loggingTree.e(e.toString())
                     }
-                    logsCache.clear()
-                    loggingTree.i("saved logs")
-                } catch (e: Exception) {
-                    loggingTree.e(e.toString())
                 }
             }
         }

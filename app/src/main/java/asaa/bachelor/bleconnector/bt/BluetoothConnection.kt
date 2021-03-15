@@ -254,7 +254,7 @@ class BluetoothConnection(val device: BluetoothDevice) {
     fun discoverServices() {
         Timber.i("$deviceTag: Discover Services")
         Handler(Looper.getMainLooper()).run {
-            if (discoveryStatus != DiscoveryStatus.STARTED && discoveryStatus is DiscoveryStatus.DISCOVERED)
+            if (discoveryStatus != DiscoveryStatus.STARTED && !(discoveryStatus is DiscoveryStatus.DISCOVERED))
                 bluetoothGatt?.discoverServices()
         }
     }
@@ -278,14 +278,17 @@ class BluetoothConnection(val device: BluetoothDevice) {
 
         override fun onDescriptorRead(gatt: BluetoothGatt?, descriptor: BluetoothGattDescriptor?, status: Int) {
             super.onDescriptorRead(gatt, descriptor, status)
+            Timber.d("$deviceTag: onDescriptorRead: $gatt, ${BluetoothGattStatus.get(status)}")
         }
 
         override fun onDescriptorWrite(gatt: BluetoothGatt?, descriptor: BluetoothGattDescriptor?, status: Int) {
             super.onDescriptorWrite(gatt, descriptor, status)
+            Timber.d("$deviceTag: onDescriptorWrite: $gatt, ${BluetoothGattStatus.get(status)}")
         }
 
         override fun onCharacteristicChanged(gatt: BluetoothGatt?, characteristic: BluetoothGattCharacteristic?) {
             super.onCharacteristicChanged(gatt, characteristic)
+            Timber.d("$deviceTag: onCharacteristicChanged: $gatt")
             characteristic?.let {
                 notifyOnRead(it, it.value)
             }
@@ -293,6 +296,7 @@ class BluetoothConnection(val device: BluetoothDevice) {
 
         override fun onServicesDiscovered(gatt: BluetoothGatt?, status: Int) {
             super.onServicesDiscovered(gatt, status)
+            Timber.d("$deviceTag: onServicesDiscovered: status ${BluetoothGattStatus.get(status)}")
             discoveryStatus = DiscoveryStatus.DISCOVERED(gatt?.services ?: emptyList())
             Timber.d(gatt?.services?.joinToString {
                 "${it.uuid}(${BtUtil.serviceToString(it.uuid.toString())})"
@@ -303,14 +307,12 @@ class BluetoothConnection(val device: BluetoothDevice) {
                         "${it.uuid}(${BtUtil.characteristicToString(it.uuid.toString())})"
                     })
             }
-
-            connectionStatus = ConnectionStatus.CONNECTED
         }
 
         override fun onCharacteristicWrite(gatt: BluetoothGatt?, characteristic: BluetoothGattCharacteristic?, status: Int) {
             super.onCharacteristicWrite(gatt, characteristic, status)
             val gattStatus = BluetoothGattStatus.get(status)
-            Timber.d("$deviceTag: gatt status: $gattStatus")
+            Timber.d("$deviceTag: onCharacteristicWrite: status $gattStatus")
             when (gattStatus) {
                 BluetoothGattStatus.GATT_SUCCESS -> {
                     Timber.d("$deviceTag: value was written: " + characteristic?.value?.joinToString(" ") { it.toChar().toString() } ?: "could not write value")
@@ -333,7 +335,7 @@ class BluetoothConnection(val device: BluetoothDevice) {
         override fun onCharacteristicRead(gatt: BluetoothGatt?, characteristic: BluetoothGattCharacteristic?, status: Int) {
             super.onCharacteristicRead(gatt, characteristic, status)
             val gattStatus = BluetoothGattStatus.get(status)
-            Timber.d("$deviceTag: gatt status: $gattStatus")
+            Timber.d("$deviceTag: onCharacteristicRead: status $gattStatus")
 
             when (gattStatus) {
                 BluetoothGattStatus.GATT_SUCCESS -> {
@@ -352,6 +354,8 @@ class BluetoothConnection(val device: BluetoothDevice) {
 
         override fun onConnectionStateChange(gatt: BluetoothGatt?, status: Int, newState: Int) {
             super.onConnectionStateChange(gatt, status, newState)
+            val gattStatus = BluetoothGattStatus.get(status)
+            Timber.d("$deviceTag: onConnectionStateChanged: status $gattStatus")
             if (gatt == null) {
                 Timber.w("$deviceTag: gatt is null: $gatt")
                 return
@@ -359,12 +363,15 @@ class BluetoothConnection(val device: BluetoothDevice) {
             bluetoothGatt = gatt
             if (status == BluetoothGatt.GATT_SUCCESS) {
                 if (newState == BluetoothProfile.STATE_CONNECTED) {
-                    Timber.w("$deviceTag: Successfully connected to ${device.address}")
+                    Timber.i("$deviceTag: Successfully connected to ${device.address}")
+                    /*
                     discoveryStatus = DiscoveryStatus.STARTED
                     Handler(Looper.getMainLooper()).run {
                         gatt.discoverServices()
                     }
+                    */
                 } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
+                    discoveryStatus = DiscoveryStatus.NOT_DISCOVERED
                     Timber.w("$deviceTag: Successfully disconnected from ${device.address}")
                     gatt.close()
                 }

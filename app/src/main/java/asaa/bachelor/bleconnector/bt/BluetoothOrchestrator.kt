@@ -72,7 +72,7 @@ class BluetoothOrchestrator @Inject constructor(@ApplicationContext val context:
         .build()
 
     override fun startDiscovery() {
-        Timber.i("Start Discovery")
+        Timber.i("Start Discovery Devices")
         btAdapter.bluetoothLeScanner.startScan(filter, scanSettings, scanCallback)
         handler.postDelayed({
             stopDiscovery()
@@ -80,7 +80,7 @@ class BluetoothOrchestrator @Inject constructor(@ApplicationContext val context:
     }
 
     override fun stopDiscovery() {
-        Timber.i("Start Discovery")
+        Timber.i("Stop Discovery Devices")
         handler.removeCallbacksAndMessages(null)
         btAdapter.bluetoothLeScanner.stopScan(scanCallback)
     }

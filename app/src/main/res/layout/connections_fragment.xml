@@ -34,16 +34,16 @@
             app:layout_constraintLeft_toLeftOf="parent">
 
             <com.google.android.material.button.MaterialButton
+                android:id="@+id/start_discovery_button"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:onClick="@{()->viewmodel.startScanning()}"
                 android:text="start"
                 android:visibility="@{viewmodel.isScanning ? View.GONE : View.VISIBLE}" />
 
             <com.google.android.material.button.MaterialButton
+                android:id="@+id/stop_discovery_button"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:onClick="@{()->viewmodel.stopScanning()}"
                 android:text="stop"
                 android:visibility="@{viewmodel.isScanning ? View.VISIBLE : View.GONE}" />
 
