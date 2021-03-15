@@ -15,8 +15,6 @@ import java.util.logging.Logger
 import javax.inject.Inject
 import javax.inject.Singleton
 
-private const val TAG = "BluetoothOrchestrator"
-
 @Singleton
 class BluetoothOrchestrator @Inject constructor(@ApplicationContext val context: Context) :
     IBluetoothOrchestrator {
@@ -29,7 +27,7 @@ class BluetoothOrchestrator @Inject constructor(@ApplicationContext val context:
 
     val btDevices: MutableList<BluetoothDevice> = mutableListOf()
 
-    val handler = Handler(context.mainLooper)
+    private val handler = Handler(context.mainLooper)
 
     private val btDeviceConnectionMap: MutableMap<BluetoothDevice, BluetoothConnection> =
         mutableMapOf()
@@ -45,7 +43,7 @@ class BluetoothOrchestrator @Inject constructor(@ApplicationContext val context:
     private val scanCallback = object : ScanCallback() {
         override fun onScanResult(callbackType: Int, result: ScanResult?) {
             super.onScanResult(callbackType, result)
-            Timber.v("onScanResult:$result")
+            Timber.v("onScanResult: ${result?.device?.address} [${result?.rssi}]")
             result?.device?.let {
                 if (!btDevices.contains(it)) {
                     btDevices.add(it)
@@ -59,12 +57,12 @@ class BluetoothOrchestrator @Inject constructor(@ApplicationContext val context:
         }
 
         override fun onScanFailed(errorCode: Int) {
-            Logger.getLogger("BluetoothOrchestrator").warning("err: $errorCode")
+            Timber.w("err: $errorCode")
         }
     }
 
     // ScanFilters (need to be in a list or null)
-    val filter: List<ScanFilter>? = null
+    private val filter: List<ScanFilter>? = null
 
     // ScanSettings
     private val scanSettings = ScanSettings.Builder()
@@ -74,6 +72,7 @@ class BluetoothOrchestrator @Inject constructor(@ApplicationContext val context:
         .build()
 
     override fun startDiscovery() {
+        Timber.i("Start Discovery")
         btAdapter.bluetoothLeScanner.startScan(filter, scanSettings, scanCallback)
         handler.postDelayed({
             stopDiscovery()
@@ -81,6 +80,7 @@ class BluetoothOrchestrator @Inject constructor(@ApplicationContext val context:
     }
 
     override fun stopDiscovery() {
+        Timber.i("Start Discovery")
         handler.removeCallbacksAndMessages(null)
         btAdapter.bluetoothLeScanner.stopScan(scanCallback)
     }
@@ -89,7 +89,7 @@ class BluetoothOrchestrator @Inject constructor(@ApplicationContext val context:
         Timber.v("request connection for: $macAddress")
         val device = resolveBTDevice(macAddress)
         if (device == null) {
-            Timber.v("No Device for Addr: $macAddress")
+            Timber.v("No Device for address: $macAddress")
             return null
         }
         if (btDeviceConnectionMap[device] == null) {
@@ -112,7 +112,7 @@ class BluetoothOrchestrator @Inject constructor(@ApplicationContext val context:
     }
 
     override fun disconnect(macAddress: String) {
-        Timber.v("disconnect:$macAddress")
+        Timber.v("disconnect: $macAddress")
         val connection = resolveBTConnection(macAddress)
         if (connection == null || connection.connectionStatus != ConnectionStatus.CONNECTED) {
             Timber.v("questionable disconnect call for connection: $connection")

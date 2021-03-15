@@ -16,11 +16,11 @@ class FileLoggingTree(val loggingTree: Timber.DebugTree, private val context: Co
     private val logsCache = mutableListOf<String>()
     private val path = "Log"
     private val delimiter = "$$$"
-    private val date = SimpleDateFormat("yyyy-MM-dd", Locale.GERMAN).format(Date())
+    private val date = SimpleDateFormat("yyyy-MM-dd", Locale.GERMANY).format(Date())
     var file: File? = generateFile(path, "$date.log")
 
     override fun log(priority: Int, tag: String?, message: String, t: Throwable?) {
-        val currTimeStamp = SimpleDateFormat("hh:mm:ss:SSS", Locale.GERMAN).format(Date())
+        val currTimeStamp = SimpleDateFormat("hh:mm:ss:SSS", Locale.GERMANY).format(Date())
         GlobalScope.launch {
             withContext(Dispatchers.IO) {
                 listOf<String>(currTimeStamp, priority.toString(), tag ?: "NO_TAG", message, t.toString() ?: "").joinToString(separator = delimiter.toString()).let {
@@ -40,7 +40,7 @@ class FileLoggingTree(val loggingTree: Timber.DebugTree, private val context: Co
                 if (file == null) return@withContext
                 try {
                     FileWriter(file, true).apply {
-                        append(logsCache.joinToString("\n"))
+                        append(logsCache.joinToString("\n", prefix = "\n"))
                         flush()
                         close()
                     }

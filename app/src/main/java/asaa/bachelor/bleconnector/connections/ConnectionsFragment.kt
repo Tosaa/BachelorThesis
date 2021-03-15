@@ -47,7 +47,7 @@ class ConnectionsFragment : Fragment() {
 
         recyclerView.adapter = adapter
         viewModel.btDevicesSize.observe(viewLifecycleOwner) {
-            Timber.v("${bluetoothOrchestrator.btDevices}")
+            Timber.v("update BtDevices: ${bluetoothOrchestrator.btDevices}")
             adapter.updateDevices(bluetoothOrchestrator.btDevices)
         }
     }

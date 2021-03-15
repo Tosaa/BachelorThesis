@@ -34,8 +34,9 @@ class BluetoothDeviceAdapter(
     override fun onBindViewHolder(holder: DeviceViewHolder, position: Int) {
         btDevices[position].let { bluetoothDevice ->
             val device = bluetoothDevice.device
+            val deviceAddress = device.address
             holder.bind(
-                device.address,
+                deviceAddress,
                 device.name ?: "UNKNOWN DEVICENAME",
                 BondState.get(device.bondState)?.toString() ?: "UNKNOWN BONDSTATE",
                 DeviceType.get(device.type)?.toString() ?: "UNKNOWN DEVICETYPE",
@@ -43,21 +44,24 @@ class BluetoothDeviceAdapter(
                 bluetoothDevice.isConnected
             )
             holder.buttonA.setOnClickListener {
-                Timber.v("on A clicked")
-                navController.navigate(ConnectionsFragmentDirections.actionConnectionsFragmentToConnectionDetail(btDevices[position].device.address))
+                Timber.v("$deviceAddress: on A clicked")
+                navController.navigate(ConnectionsFragmentDirections.actionConnectionsFragmentToConnectionDetail(deviceAddress))
             }
             holder.buttonShowConnection.setOnClickListener {
-                Timber.v("on show connection clicked")
-                navController.navigate(ConnectionsFragmentDirections.actionConnectionsFragmentToConnectionDetail(btDevices[position].device.address))
+                Timber.v("$deviceAddress: on show connection clicked")
+                navController.navigate(ConnectionsFragmentDirections.actionConnectionsFragmentToConnectionDetail(deviceAddress))
             }
 
             holder.buttonB.setOnClickListener {
+                Timber.v("$deviceAddress: on B clicked")
                 // bluetoothOrchestrator.connectWithLibrary(btDevices[position])
             }
             holder.address.setOnClickListener {
                 if (position == expandedItem) {
+                    Timber.v("$deviceAddress: reduce Item")
                     expandedItem = -1
                 } else {
+                    Timber.v("$deviceAddress: expand Item")
                     expandedItem = position
                 }
                 notifyDataSetChanged()
@@ -72,7 +76,7 @@ class BluetoothDeviceAdapter(
     fun updateDevices(newBtDevices: List<BluetoothDevice>) {
         btDevices.clear()
         btDevices.addAll(newBtDevices.map { BluetoothDeviceWithState(it, bluetoothOrchestrator.connectionFor(it.address)?.connectionStatus.let { it == ConnectionStatus.CONNECTED }) })
-        Timber.v("update all BluetoothDevices: $btDevices")
+        Timber.v("update all Bluetooth Devices in Adapter: $btDevices")
         notifyDataSetChanged()
     }
 

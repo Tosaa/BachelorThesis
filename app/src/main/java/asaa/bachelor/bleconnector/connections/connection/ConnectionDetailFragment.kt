@@ -4,6 +4,7 @@ import android.bluetooth.BluetoothGattCharacteristic
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.service.autofill.CustomDescription
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -12,10 +13,7 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.navArgs
 import asaa.bachelor.bleconnector.bt.*
-import asaa.bachelor.bleconnector.bt.common.CommonCharacteristics
-import asaa.bachelor.bleconnector.bt.common.CommonServices
-import asaa.bachelor.bleconnector.bt.common.CustomCharacteristic
-import asaa.bachelor.bleconnector.bt.common.CustomService
+import asaa.bachelor.bleconnector.bt.common.*
 import asaa.bachelor.bleconnector.databinding.ConnectionDetailFragmentBinding
 import dagger.hilt.android.AndroidEntryPoint
 import timber.log.Timber
@@ -51,43 +49,52 @@ class ConnectionDetailFragment : Fragment(), IStatusObserver {
         super.onResume()
         Timber.v("onResume")
         connection?.addObserver(this)
+        viewModel.isIndicateActive.postValue(connection?.isIndicateActive(CustomService.CUSTOM_SERVICE_1.uuid, CustomCharacteristic.INDICATE_CHARACTERISTIC.uuid))
+        viewModel.isNotifyActive.postValue(connection?.isNotifyActive(CustomService.CUSTOM_SERVICE_1.uuid, CustomCharacteristic.NOTIFY_CHARACTERISTIC.uuid))
     }
 
     override fun onConnectionStateChanged(newStatus: ConnectionStatus) {
         super.onConnectionStateChanged(newStatus)
+        Timber.v("$macAddress: onConnectionStateChanged ${viewModel.connectionState.value} - $newStatus")
         viewModel.connectionState.postValue(newStatus)
         if (newStatus is ConnectionStatus.DISCONNECTED) {
             // reset Fragment
             viewModel.isNotifyActive.postValue(false)
             viewModel.isIndicateActive.postValue(false)
-            Handler(Looper.getMainLooper()).post {
-                Toast.makeText(requireContext(), "could not connect because of ${newStatus.reason}", Toast.LENGTH_SHORT).show()
+            if (newStatus.reason.length > 0) {
+                Handler(Looper.getMainLooper()).post {
+                    Toast.makeText(requireContext(), "could not connect because of ${newStatus.reason}", Toast.LENGTH_SHORT).show()
+                }
             }
         }
     }
 
     override fun onDiscoveryStateChanged(newDiscoveryState: DiscoveryStatus) {
         super.onDiscoveryStateChanged(newDiscoveryState)
+        Timber.v("$macAddress: onDiscoveryStateChanged ${viewModel.discoverState.value} - $newDiscoveryState")
         viewModel.discoverState.postValue(newDiscoveryState)
     }
 
     override fun onBondStateChanged(bond: BondState) {
         super.onBondStateChanged(bond)
+        Timber.v("$macAddress: onBondStateChanged ${viewModel.bondState.value} - $bond")
         viewModel.bondState.postValue(bond)
     }
 
     override fun onWriteCharacteristic(characteristic: BluetoothGattCharacteristic, value: ByteArray, status: BluetoothGattStatus) {
         super.onWriteCharacteristic(characteristic, value, status)
         val writtenValue = value.joinToString(separator = "") { it.toChar().toString() }
+        val characteristicMatch = CommonCharacteristics.mapIfExists(characteristic.uuid.toString()) ?: CustomCharacteristic.mapIfExists(characteristic.uuid.toString())
+        Timber.v("$macAddress: onWriteCharacteristic: received: $writtenValue for $characteristicMatch")
 
         when (status) {
             BluetoothGattStatus.GATT_SUCCESS -> Handler(Looper.getMainLooper()).post { Toast.makeText(requireContext(), "wrote: $writtenValue", Toast.LENGTH_SHORT).show() }
             BluetoothGattStatus.GATT_WRITE_NOT_PERMITTED -> {
-                Timber.w("Insufficient Permission to write:$characteristic")
+                Timber.w("Insufficient Permission to write: $characteristic")
                 return
             }
             else -> {
-                Timber.w("Error on Reading characteristic:$characteristic")
+                Timber.w("Error on Reading characteristic: $characteristic")
                 return
             }
         }
@@ -98,7 +105,7 @@ class ConnectionDetailFragment : Fragment(), IStatusObserver {
         val uuid = characteristic.uuid.toString()
         val readValue = value.joinToString(separator = "") { it.toChar().toString() }
         val characteristicMatch = CommonCharacteristics.mapIfExists(uuid) ?: CustomCharacteristic.mapIfExists(uuid)
-        Timber.v("onReadCharacteristic: received:$readValue for $characteristicMatch")
+        Timber.v("$macAddress: onReadCharacteristic: received: $readValue for $characteristicMatch")
         when (characteristicMatch) {
             CommonCharacteristics.BatteryLevel -> viewModel.batteryValue.postValue(readValue)
             CustomCharacteristic.READ_CHARACTERISTIC -> viewModel.customReadValue.postValue(readValue)
@@ -120,19 +127,22 @@ class ConnectionDetailFragment : Fragment(), IStatusObserver {
                 Timber.w("ConnectionState of Viewmodel is not same as real ConnectionState: ${viewModel.connectionState.value} != ${connection?.connectionStatus}")
             }
             if (viewModel.isConnected.value == true) {
+                Timber.i("$macAddress: onClick: Disconnect")
                 connection?.disconnect()
             } else {
+                Timber.i("$macAddress: onClick: Connect")
                 connection?.connect(requireContext(), false)
             }
         }
         binding.bondingState.stateButton.setOnClickListener {
+            Timber.i("$macAddress: onClick: Create bond")
             connection?.device?.createBond()
         }
         binding.discoveryState.stateButton.setOnClickListener {
             if (viewModel.isDiscovered.value == true) {
                 viewModel.discoverState.value.let { discoveryState ->
                     if (discoveryState is DiscoveryStatus.DISCOVERED) {
-                        Timber.v("show DeviceInfoFragment")
+                        Timber.i("$macAddress: onClick: Show Device Info")
                         discoveryState?.services.joinToString(separator = "\n\n") {
                             BtUtil.serviceToString(it.uuid.toString()) + "\n" +
                                     it.characteristics.joinToString("\n-", prefix = "-") {
@@ -145,18 +155,22 @@ class ConnectionDetailFragment : Fragment(), IStatusObserver {
                     }
                 }
             } else {
+                Timber.i("$macAddress: onClick: Discover")
                 connection?.discoverServices()
             }
         }
         // BATTERY
         binding.batteryStatus.readButton.setOnClickListener {
+            Timber.i("$macAddress: onClick: read Battery")
             connection?.requestRead(CommonServices.Battery.longUUID, CommonCharacteristics.BatteryLevel.longUUID)
         }
         // Custom Service
         binding.customStatus.readButton.setOnClickListener {
+            Timber.i("$macAddress: onClick: read ${CustomService.CUSTOM_SERVICE_1},${CustomCharacteristic.READ_CHARACTERISTIC}")
             connection?.requestRead(CustomService.CUSTOM_SERVICE_1.uuid, CustomCharacteristic.READ_CHARACTERISTIC.uuid)
         }
         binding.customStatus.notifyButton.setOnClickListener {
+            Timber.i("$macAddress: onClick: Toggle Notify ${CustomService.CUSTOM_SERVICE_1}, ${CustomCharacteristic.NOTIFY_CHARACTERISTIC}")
             connection?.let { conn ->
                 val isNotifyActive = viewModel.isNotifyActive.value ?: false
 
@@ -173,6 +187,7 @@ class ConnectionDetailFragment : Fragment(), IStatusObserver {
             }
         }
         binding.customStatus.indicateButton.setOnClickListener {
+            Timber.i("$macAddress: onClick: Toggle Indicate ${CustomService.CUSTOM_SERVICE_1}, ${CustomCharacteristic.INDICATE_CHARACTERISTIC}")
             connection?.let { conn ->
                 val isIndicateActive = viewModel.isIndicateActive.value ?: false
                 if (isIndicateActive) {
@@ -187,11 +202,15 @@ class ConnectionDetailFragment : Fragment(), IStatusObserver {
             }
         }
         binding.customStatus.writeButton.setOnClickListener {
-            connection?.requestWrite(CustomService.CUSTOM_SERVICE_1.uuid, CustomCharacteristic.WRITE_CHARACTERISTIC.uuid, binding.customStatus.writeTextField.text.toString())
+            val text = binding.customStatus.writeTextField.text.toString()
+            Timber.i("$macAddress: onClick: Write ${CustomService.CUSTOM_SERVICE_1}, ${CustomCharacteristic.WRITE_CHARACTERISTIC}, $text")
+            connection?.requestWrite(CustomService.CUSTOM_SERVICE_1.uuid, CustomCharacteristic.WRITE_CHARACTERISTIC.uuid, text)
             binding.customStatus.writeTextField.setText("")
         }
         binding.customStatus.writeNoResponseButton.setOnClickListener {
-            connection?.requestWrite(CustomService.CUSTOM_SERVICE_1.uuid, CustomCharacteristic.WRITE_WO_RESPONSE_CHARACTERISTIC.uuid, binding.customStatus.writeTextField.text.toString())
+            val text = binding.customStatus.writeTextField.text.toString()
+            Timber.i("$macAddress: onClick: Write ${CustomService.CUSTOM_SERVICE_1}, ${CustomCharacteristic.WRITE_WO_RESPONSE_CHARACTERISTIC}, $text")
+            connection?.requestWrite(CustomService.CUSTOM_SERVICE_1.uuid, CustomCharacteristic.WRITE_WO_RESPONSE_CHARACTERISTIC.uuid, text)
             binding.customStatus.writeTextField.setText("")
         }
     }
