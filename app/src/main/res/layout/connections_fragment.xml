@@ -29,6 +29,8 @@
             android:id="@+id/control_buttons"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginBottom="@dimen/deep_padding"
+            android:gravity="center_vertical"
             android:orientation="horizontal"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintLeft_toLeftOf="parent">
@@ -37,6 +39,7 @@
                 android:id="@+id/start_discovery_button"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_margin="5dp"
                 android:text="start"
                 android:visibility="@{viewmodel.isScanning ? View.GONE : View.VISIBLE}" />
 
@@ -44,14 +47,24 @@
                 android:id="@+id/stop_discovery_button"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_margin="5dp"
                 android:text="stop"
                 android:visibility="@{viewmodel.isScanning ? View.VISIBLE : View.GONE}" />
 
             <com.google.android.material.button.MaterialButton
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_margin="5dp"
                 android:onClick="@{()->viewmodel.closeAll()}"
-                android:text="close all"/>
+                android:text="close all" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/simultan_esp_actions"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_margin="5dp"
+                android:text="Simultan ESP Actions" />
 
         </LinearLayout>
 

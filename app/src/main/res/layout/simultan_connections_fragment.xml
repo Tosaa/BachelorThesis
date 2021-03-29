@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <data>
+
+        <variable
+            name="viewmodel"
+            type="asaa.bachelor.bleconnector.connections.connection.multi.SimultanConnectionViewModel" />
+    </data>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+
+        <com.google.android.material.checkbox.MaterialCheckBox
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="5dp"
+            android:background="#ffffff"
+            android:backgroundTint="@{viewmodel.firstConnection.isReady  ?  @color/colorActive :@color/colorInactive}"
+            android:checked="@{viewmodel.firstConnection.selected}"
+            android:onClick="@{()->viewmodel.firstConnection.toggle()}"
+            android:text="@{viewmodel.firstConnection.address}" />
+
+        <com.google.android.material.textview.MaterialTextView
+            style="@style/AppTheme.TextView.Content"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@{viewmodel.firstConnection.latestCommands.toString()}" />
+
+        <com.google.android.material.textview.MaterialTextView
+            style="@style/AppTheme.TextView.Content"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@{viewmodel.firstConnection.latestCommandDuration}" />
+
+        <com.google.android.material.checkbox.MaterialCheckBox
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="5dp"
+            android:background="#ffffff"
+            android:backgroundTint="@{viewmodel.secondConnection.isReady  ?  @color/colorActive :@color/colorInactive}"
+            android:checked="@{viewmodel.secondConnection.selected}"
+            android:onClick="@{()->viewmodel.secondConnection.toggle()}"
+            android:text="@{viewmodel.secondConnection.address}" />
+
+        <com.google.android.material.textview.MaterialTextView
+            style="@style/AppTheme.TextView.Content"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@{viewmodel.secondConnection.latestCommands.toString()}" />
+
+        <com.google.android.material.textview.MaterialTextView
+            style="@style/AppTheme.TextView.Content"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@{viewmodel.secondConnection.latestCommandDuration}" />
+
+        <com.google.android.material.checkbox.MaterialCheckBox
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="5dp"
+            android:background="#ffffff"
+            android:backgroundTint="@{viewmodel.thirdConnection.isReady  ?  @color/colorActive :@color/colorInactive}"
+            android:checked="@{viewmodel.thirdConnection.selected}"
+            android:onClick="@{()->viewmodel.thirdConnection.toggle()}"
+            android:text="@{viewmodel.thirdConnection.address}" />
+
+        <com.google.android.material.textview.MaterialTextView
+            style="@style/AppTheme.TextView.Content"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@{viewmodel.thirdConnection.latestCommands.toString()}" />
+
+        <com.google.android.material.textview.MaterialTextView
+            style="@style/AppTheme.TextView.Content"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@{viewmodel.thirdConnection.latestCommandDuration}" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:orientation="horizontal">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/connect_selected"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_margin="10dp"
+                android:text="Connect" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/disconnect_selected"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_margin="10dp"
+                android:text="Disconnect" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:orientation="horizontal">
+
+            <Button
+                android:id="@+id/read_selected"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_margin="10dp"
+                android:text="Read" />
+
+            <Button
+                android:id="@+id/read_selected_2"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_margin="10dp"
+                android:text="Read_2" />
+
+        </LinearLayout>
+    </LinearLayout>
+</layout>

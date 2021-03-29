@@ -4,7 +4,6 @@ import android.bluetooth.BluetoothGattCharacteristic
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
-import android.service.autofill.CustomDescription
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -13,7 +12,10 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.navArgs
 import asaa.bachelor.bleconnector.bt.*
-import asaa.bachelor.bleconnector.bt.common.*
+import asaa.bachelor.bleconnector.bt.common.CommonCharacteristics
+import asaa.bachelor.bleconnector.bt.common.CommonServices
+import asaa.bachelor.bleconnector.bt.common.CustomCharacteristic
+import asaa.bachelor.bleconnector.bt.common.CustomService
 import asaa.bachelor.bleconnector.databinding.ConnectionDetailFragmentBinding
 import dagger.hilt.android.AndroidEntryPoint
 import timber.log.Timber
@@ -109,6 +111,7 @@ class ConnectionDetailFragment : Fragment(), IStatusObserver {
         when (characteristicMatch) {
             CommonCharacteristics.BatteryLevel -> viewModel.batteryValue.postValue(readValue)
             CustomCharacteristic.READ_CHARACTERISTIC -> viewModel.customReadValue.postValue(readValue)
+            CustomCharacteristic.READ_CHARACTERISTIC_2 -> viewModel.customReadValue.postValue(readValue)
             CustomCharacteristic.INDICATE_CHARACTERISTIC -> viewModel.customIndicateValue.postValue(readValue)
             CustomCharacteristic.NOTIFY_CHARACTERISTIC -> viewModel.customNotifyValue.postValue(readValue)
         }
@@ -168,6 +171,7 @@ class ConnectionDetailFragment : Fragment(), IStatusObserver {
         binding.customStatus.readButton.setOnClickListener {
             Timber.i("$macAddress: onClick: read ${CustomService.CUSTOM_SERVICE_1},${CustomCharacteristic.READ_CHARACTERISTIC}")
             connection?.requestRead(CustomService.CUSTOM_SERVICE_1.uuid, CustomCharacteristic.READ_CHARACTERISTIC.uuid)
+            connection?.requestRead(CustomService.CUSTOM_SERVICE_1.uuid, CustomCharacteristic.READ_CHARACTERISTIC_2.uuid)
         }
         binding.customStatus.notifyButton.setOnClickListener {
             Timber.i("$macAddress: onClick: Toggle Notify ${CustomService.CUSTOM_SERVICE_1}, ${CustomCharacteristic.NOTIFY_CHARACTERISTIC}")

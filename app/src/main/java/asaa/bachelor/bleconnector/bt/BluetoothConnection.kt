@@ -161,7 +161,8 @@ class BluetoothConnection(val device: BluetoothDevice) {
 
     private fun readCharacteristic(gattCharacteristic: BluetoothGattCharacteristic) {
         Timber.d("$deviceTag: readCharacteristic: $gattCharacteristic ")
-        bluetoothGatt?.readCharacteristic(gattCharacteristic)
+        val apiReturnValue = bluetoothGatt?.readCharacteristic(gattCharacteristic)
+        Timber.d("$deviceTag: readCharacteristic api response: $apiReturnValue")
     }
 
 
@@ -256,6 +257,8 @@ class BluetoothConnection(val device: BluetoothDevice) {
         Handler(Looper.getMainLooper()).run {
             if (discoveryStatus != DiscoveryStatus.STARTED && !(discoveryStatus is DiscoveryStatus.DISCOVERED))
                 bluetoothGatt?.discoverServices()
+            else
+                Timber.w("$deviceTag: Services cant be discovered")
         }
     }
 
@@ -364,7 +367,9 @@ class BluetoothConnection(val device: BluetoothDevice) {
             if (status == BluetoothGatt.GATT_SUCCESS) {
                 if (newState == BluetoothProfile.STATE_CONNECTED) {
                     Timber.i("$deviceTag: Successfully connected to ${device.address}")
-                    /*
+
+                /*
+
                     discoveryStatus = DiscoveryStatus.STARTED
                     Handler(Looper.getMainLooper()).run {
                         gatt.discoverServices()

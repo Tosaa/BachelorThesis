@@ -2,10 +2,12 @@ package asaa.bachelor.bleconnector.bt.common
 
 enum class CustomCharacteristic(val uuid: String) {
     READ_CHARACTERISTIC("fbdc45f2-8337-467b-8019-e7db05355215"),
+    READ_CHARACTERISTIC_2("ab191949-a8c0-438b-81ce-90b97f1858a8"),
     WRITE_CHARACTERISTIC("f847b552-f7dc-42e9-9dad-8452d7ad7681"),
     WRITE_WO_RESPONSE_CHARACTERISTIC("59bf9b12-ba39-4983-89bc-e541c2091535"),
     NOTIFY_CHARACTERISTIC("1ee1d0fc-6f3c-4c6a-ac1c-c54d2a97f932"),
-    INDICATE_CHARACTERISTIC("83157f66-7c91-431e-a037-7c2b9e594ef6");
+    INDICATE_CHARACTERISTIC("83157f66-7c91-431e-a037-7c2b9e594ef6"),
+    CONNECTION_INTERVAL_CHARACTERISTIC("46ac40cc-7eaa-41a9-9964-956a984fd9c3");
 
     companion object {
         private val map = CustomCharacteristic.values().associateBy(CustomCharacteristic::uuid)

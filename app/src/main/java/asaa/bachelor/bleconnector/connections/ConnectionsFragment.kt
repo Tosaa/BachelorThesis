@@ -47,6 +47,9 @@ class ConnectionsFragment : Fragment() {
             viewModel.stopScanning()
         }
 
+        binding.simultanEspActions.setOnClickListener {
+            findNavController().navigate(ConnectionsFragmentDirections.actionConnectionsFragmentToSimultanConnectionFragment())
+        }
         return binding.root
     }
 
