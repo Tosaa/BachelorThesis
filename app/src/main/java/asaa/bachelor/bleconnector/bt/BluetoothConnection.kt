@@ -48,7 +48,6 @@ class BluetoothConnection(val device: BluetoothDevice) {
     // callback will trigger all observers and change state values
     val callback = BluetoothCallback()
 
-
     fun addObserver(o: IStatusObserver) {
         Timber.d("$deviceTag: add Observer: $o")
         observers.add(o)
@@ -94,6 +93,14 @@ class BluetoothConnection(val device: BluetoothDevice) {
 
 
     // operations on BluetoothConnection
+
+    fun requestMtu(mtu: Int): Boolean {
+        Timber.d("$deviceTag: request Mtu: $mtu")
+        bluetoothGatt?.let {
+            return it.requestMtu(mtu)
+        }
+        return false
+    }
 
     fun requestWrite(service: String, characteristic: String, value: String): Boolean {
         Timber.d("$deviceTag: write: $value on  $service -> $characteristic")
@@ -368,13 +375,13 @@ class BluetoothConnection(val device: BluetoothDevice) {
                 if (newState == BluetoothProfile.STATE_CONNECTED) {
                     Timber.i("$deviceTag: Successfully connected to ${device.address}")
 
-                /*
+                    /*
 
-                    discoveryStatus = DiscoveryStatus.STARTED
-                    Handler(Looper.getMainLooper()).run {
-                        gatt.discoverServices()
-                    }
-                    */
+                        discoveryStatus = DiscoveryStatus.STARTED
+                        Handler(Looper.getMainLooper()).run {
+                            gatt.discoverServices()
+                        }
+                        */
                 } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
                     discoveryStatus = DiscoveryStatus.NOT_DISCOVERED
                     Timber.w("$deviceTag: Successfully disconnected from ${device.address}")

@@ -4,9 +4,7 @@ import android.bluetooth.BluetoothGatt
 import android.bluetooth.BluetoothGattCallback
 import android.bluetooth.BluetoothGattCharacteristic
 import android.bluetooth.BluetoothGattDescriptor
-import android.util.Log
 import timber.log.Timber
-import kotlin.system.measureTimeMillis
 
 private const val TAG = "LogableBluetoothGattCallback"
 

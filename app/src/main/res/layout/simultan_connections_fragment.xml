@@ -27,13 +27,13 @@
             style="@style/AppTheme.TextView.Content"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@{viewmodel.firstConnection.latestCommands.toString()}" />
+            android:text="@{viewmodel.firstConnection.timeKeeper.commands()}" />
 
         <com.google.android.material.textview.MaterialTextView
             style="@style/AppTheme.TextView.Content"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@{viewmodel.firstConnection.latestCommandDuration}" />
+            android:text="@{viewmodel.firstConnection.timeKeeper.duration()}" />
 
         <com.google.android.material.checkbox.MaterialCheckBox
             android:layout_width="match_parent"
@@ -49,13 +49,13 @@
             style="@style/AppTheme.TextView.Content"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@{viewmodel.secondConnection.latestCommands.toString()}" />
+            android:text="@{viewmodel.secondConnection.timeKeeper.commands()}" />
 
         <com.google.android.material.textview.MaterialTextView
             style="@style/AppTheme.TextView.Content"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@{viewmodel.secondConnection.latestCommandDuration}" />
+            android:text="@{viewmodel.secondConnection.timeKeeper.duration()}" />
 
         <com.google.android.material.checkbox.MaterialCheckBox
             android:layout_width="match_parent"
@@ -71,56 +71,23 @@
             style="@style/AppTheme.TextView.Content"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@{viewmodel.thirdConnection.latestCommands.toString()}" />
+            android:text="@{viewmodel.thirdConnection.timeKeeper.commands()}" />
 
         <com.google.android.material.textview.MaterialTextView
             style="@style/AppTheme.TextView.Content"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@{viewmodel.thirdConnection.latestCommandDuration}" />
+            android:text="@{viewmodel.thirdConnection.timeKeeper.duration()}" />
 
-        <LinearLayout
+        <com.google.android.material.tabs.TabLayout
+            android:id="@+id/tab_layout"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:gravity="center"
-            android:orientation="horizontal">
+            android:layout_height="wrap_content" />
 
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/connect_selected"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_margin="10dp"
-                android:text="Connect" />
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/disconnect_selected"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_margin="10dp"
-                android:text="Disconnect" />
-
-        </LinearLayout>
-
-        <LinearLayout
+        <androidx.viewpager2.widget.ViewPager2
+            android:id="@+id/interaction_view_pager"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:gravity="center"
-            android:orientation="horizontal">
+            android:layout_height="match_parent" />
 
-            <Button
-                android:id="@+id/read_selected"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_margin="10dp"
-                android:text="Read" />
-
-            <Button
-                android:id="@+id/read_selected_2"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_margin="10dp"
-                android:text="Read_2" />
-
-        </LinearLayout>
     </LinearLayout>
 </layout>

@@ -5,9 +5,10 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.viewModels
+import androidx.fragment.app.activityViewModels
 import asaa.bachelor.bleconnector.bt.BluetoothOrchestrator
 import asaa.bachelor.bleconnector.databinding.SimultanConnectionsFragmentBinding
+import com.google.android.material.tabs.TabLayoutMediator
 import dagger.hilt.android.AndroidEntryPoint
 import timber.log.Timber
 import javax.inject.Inject
@@ -17,9 +18,9 @@ class SimultanConnectionFragment : Fragment() {
 
     @Inject
     lateinit var bluetoothOrchestrator: BluetoothOrchestrator
-    val viewModel: SimultanConnectionViewModel by viewModels()
+    val viewModel: SimultanConnectionViewModel by activityViewModels()
     lateinit var binding: SimultanConnectionsFragmentBinding
-
+    private lateinit var adapter: CommandsAdapter
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -27,34 +28,11 @@ class SimultanConnectionFragment : Fragment() {
         binding = SimultanConnectionsFragmentBinding.inflate(inflater, container, false)
         binding.lifecycleOwner = viewLifecycleOwner
         binding.viewmodel = viewModel
-        binding.connectSelected.setOnClickListener {
-            viewModel.connections.filterNotNull().filter { it.isSelected }.forEach {
-                Timber.d("connect: $it")
-                it.connect()
-            }
-        }
-
-        binding.disconnectSelected.setOnClickListener {
-            viewModel.connections.filterNotNull().filter { it.isSelected }.forEach {
-                Timber.d("disconnect: $it")
-                it.disconnect()
-            }
-        }
-        binding.readSelected.setOnClickListener {
-            viewModel.connections.filterNotNull().filter { it.isSelected }.forEach {
-                Timber.d("read C1: $it")
-                if (it.isReady)
-                    it.readC1()
-            }
-        }
-        binding.readSelected2.setOnClickListener {
-            viewModel.connections.filterNotNull().filter { it.isSelected }.forEach {
-                Timber.d("read C2: $it")
-                if (it.isReady)
-                    it.readC2()
-            }
-        }
-
+        adapter = CommandsAdapter(this)
+        binding.interactionViewPager.adapter = adapter
+        TabLayoutMediator(binding.tabLayout, binding.interactionViewPager) { tab, position ->
+            tab.text = adapter.fragments[position].title
+        }.attach()
         return binding.root
     }
 
