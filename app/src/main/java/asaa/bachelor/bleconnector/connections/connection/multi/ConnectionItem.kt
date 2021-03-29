@@ -111,6 +111,18 @@ data class ConnectionItem(val address: String, private val orchestrator: Bluetoo
 
     }
 
+    override fun onWriteCharacteristic(characteristic: BluetoothGattCharacteristic, value: ByteArray, status: BluetoothGattStatus) {
+        super.onWriteCharacteristic(characteristic, value, status)
+        when (status) {
+            BluetoothGattStatus.GATT_SUCCESS -> {
+                timeKeeper.end("write: completed")
+            }
+            else -> {
+                timeKeeper.end(status.toString())
+            }
+        }
+    }
+
     fun toggle() {
         isSelected = !isSelected
     }

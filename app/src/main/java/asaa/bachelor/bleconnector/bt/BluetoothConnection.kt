@@ -141,12 +141,12 @@ class BluetoothConnection(val device: BluetoothDevice) {
 
     fun isNotifyActive(service: String, characteristic: String): Boolean {
         val gattCharacteristic = getCharacteristic(service, characteristic) ?: return false
-        return gattCharacteristic.getDescriptor(CommonDescriptors.ClientCharacteristicConfiguration.uuid).value == BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE
+        return gattCharacteristic.getDescriptor(CommonDescriptors.ClientCharacteristicConfiguration.uuid).value.contentEquals(BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE)
     }
 
     fun isIndicateActive(service: String, characteristic: String): Boolean {
         val gattCharacteristic = getCharacteristic(service, characteristic) ?: return false
-        return gattCharacteristic.getDescriptor(CommonDescriptors.ClientCharacteristicConfiguration.uuid).value == BluetoothGattDescriptor.ENABLE_INDICATION_VALUE
+        return gattCharacteristic.getDescriptor(CommonDescriptors.ClientCharacteristicConfiguration.uuid).value.contentEquals(BluetoothGattDescriptor.ENABLE_INDICATION_VALUE)
     }
 
     fun requestRead(service: String, characteristic: String): Boolean {
