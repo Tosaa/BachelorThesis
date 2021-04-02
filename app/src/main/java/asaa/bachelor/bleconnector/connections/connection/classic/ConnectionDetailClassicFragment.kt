@@ -10,6 +10,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.navArgs
 import asaa.bachelor.bleconnector.bt.BluetoothConnection
 import asaa.bachelor.bleconnector.bt.BluetoothOrchestrator
@@ -24,8 +25,6 @@ import javax.inject.Inject
 
 @AndroidEntryPoint
 class ConnectionDetailClassicFragment : Fragment() {
-    val UUID = java.util.UUID.fromString("0f785752-9399-11eb-a8b3-0242ac130003")
-
 
     @Inject
     lateinit var bluetoothOrchestrator: BluetoothOrchestrator
@@ -35,7 +34,7 @@ class ConnectionDetailClassicFragment : Fragment() {
     lateinit var macAddress: String
     private lateinit var btDevice: BluetoothDevice
     val bluetoothAdapter = BluetoothAdapter.getDefaultAdapter()
-
+    private var dataExchangeService: ClassicDataExchangeService? = null
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -54,9 +53,19 @@ class ConnectionDetailClassicFragment : Fragment() {
         binding.connectionState.stateButton.setOnClickListener {
             startConnection()
         }
+        binding.writeButton.setOnClickListener {
+            dataExchangeService?.write(lifecycleScope, "Test")
+        }
     }
 
     private fun startConnection() {
+        dataExchangeService = ClassicDataExchangeService(btDevice)
+        dataExchangeService?.addObserver(viewModel)
+        dataExchangeService?.connect(lifecycleScope)
+    }
 
+    override fun onStop() {
+        dataExchangeService?.removeObserver(viewModel)
+        super.onStop()
     }
 }

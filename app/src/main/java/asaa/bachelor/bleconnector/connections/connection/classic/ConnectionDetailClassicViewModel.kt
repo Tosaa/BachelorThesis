@@ -15,14 +15,26 @@ private const val TAG = "ConnectionDetailViewModel"
 
 @HiltViewModel
 class ConnectionDetailClassicViewModel @Inject constructor(val bluetoothOrchestrator: BluetoothOrchestrator) :
-    ViewModel() {
+    ViewModel(), ClassicDataExchangeService.ConnectionStateObserver {
 
     // Bluetooth Device
     val bluetoothDevice = MutableLiveData<BluetoothDevice>()
     val macAddress = bluetoothDevice.map { it.address }
     val deviceName = bluetoothDevice.map { it.name }
 
-    val connectionState = MutableLiveData<ConnectionStatus>()
-    val isConnected = connectionState.map { it == ConnectionStatus.CONNECTED }
+    val connectionState = MutableLiveData<ClassicDataExchangeService.ConnectionState>()
+    val isConnected = connectionState.map { it == ClassicDataExchangeService.ConnectionState.CONNECTED }
     val connectButtonText = "Connect"
+    val latestRead = MutableLiveData("nothing read yet")
+    override fun onConnectionStateChanged(connectionStatus: ClassicDataExchangeService.ConnectionState) {
+        connectionState.postValue(connectionStatus)
+    }
+
+    override fun onWrite(bytes: ByteArray) {
+
+    }
+
+    override fun onRead(bytes: ByteArray) {
+        bytes.joinToString { it.toChar().toString() }.let { latestRead.postValue(it) }
+    }
 }
