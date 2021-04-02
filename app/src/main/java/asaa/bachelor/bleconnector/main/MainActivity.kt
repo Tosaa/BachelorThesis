@@ -3,29 +3,26 @@ package asaa.bachelor.bleconnector.main
 import android.Manifest
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
-import android.content.Context
-import android.content.Intent
-import android.content.IntentFilter
-import android.content.SharedPreferences
+import android.content.*
 import android.content.pm.PackageManager
 import android.location.LocationManager
 import android.os.Bundle
-import android.util.Log
+import android.os.Handler
+import android.os.Looper
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.core.location.LocationManagerCompat
 import androidx.databinding.DataBindingUtil
 import androidx.navigation.fragment.NavHostFragment
-import androidx.work.impl.utils.ForceStopRunnable
 import asaa.bachelor.bleconnector.R
 import asaa.bachelor.bleconnector.bt.BluetoothOrchestrator
-import asaa.bachelor.bleconnector.bt.BondState
-import asaa.bachelor.bleconnector.bt.BtUtil
 import asaa.bachelor.bleconnector.databinding.ActivityMainBinding
+import com.google.android.material.snackbar.Snackbar
 import dagger.hilt.android.AndroidEntryPoint
 import timber.log.Timber
-import java.security.KeyStore
 import javax.inject.Inject
+
 
 @AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
@@ -71,9 +68,32 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        // Register Bond State Listener
-        //Timber.v("register broadcast receiver for bond connections")
-        //listenToBondStateChanges(this)
+        // Register for broadcasts when a device is discovered.
+        val filter = IntentFilter(BluetoothDevice.ACTION_FOUND)
+        registerReceiver(receiver, filter)
+    }
+
+    // Create a BroadcastReceiver for ACTION_FOUND.
+    private val receiver = object : BroadcastReceiver() {
+
+        override fun onReceive(context: Context, intent: Intent) {
+            when (intent.action) {
+                BluetoothDevice.ACTION_FOUND -> {
+                    // Discovery has found a device. Get the BluetoothDevice
+                    // object and its info from the Intent.
+                    val device: BluetoothDevice? =
+                        intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE)
+                    Timber.i("found new Bt Device: ${device?.name} , ${device?.address}")
+
+                    device?.let {
+                        bluetoothOrchestrator.addBluetoothDevice(it)
+                    }
+                    Handler(Looper.getMainLooper()).run {
+                        Toast.makeText(context, "Found BT Device: ${device?.address}", Toast.LENGTH_SHORT).show()
+                    }
+                }
+            }
+        }
     }
 
     fun checkSystemSettings() {
@@ -101,27 +121,8 @@ class MainActivity : AppCompatActivity() {
 
     override fun onStop() {
         super.onStop()
-    }
-
-    fun listenToBondStateChanges(context: Context) {
-        context.applicationContext.registerReceiver(
-            broadcastReceiver,
-            IntentFilter(BluetoothDevice.ACTION_BOND_STATE_CHANGED)
-        )
-    }
-
-    private val broadcastReceiver = object : ForceStopRunnable.BroadcastReceiver() {
-        override fun onReceive(context: Context, intent: Intent) {
-            with(intent) {
-                if (action == BluetoothDevice.ACTION_BOND_STATE_CHANGED) {
-                    val device = getParcelableExtra<BluetoothDevice>(BluetoothDevice.EXTRA_DEVICE)
-                    val previousBondState = getIntExtra(BluetoothDevice.EXTRA_PREVIOUS_BOND_STATE, -1)
-                    val bondState = getIntExtra(BluetoothDevice.EXTRA_BOND_STATE, -1)
-                    val bondTransition = "${BondState.get(previousBondState)} to ${BondState.get(bondState)}"
-                    Timber.v("${device?.address} bond state changed | $bondTransition")
-                }
-            }
-        }
+        // Don't forget to unregister the ACTION_FOUND receiver.
+        unregisterReceiver(receiver)
     }
 
 }

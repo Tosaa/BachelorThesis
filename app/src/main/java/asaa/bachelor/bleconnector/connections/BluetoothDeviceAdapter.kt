@@ -44,7 +44,7 @@ class BluetoothDeviceAdapter(
                 bluetoothDevice.isConnected
             )
             holder.buttonA.setOnClickListener {
-                Timber.v("$deviceAddress: on A clicked")
+                Timber.v("$deviceAddress: on LE clicked")
                 navController.navigate(ConnectionsFragmentDirections.actionConnectionsFragmentToConnectionDetail(deviceAddress))
             }
             holder.buttonShowConnection.setOnClickListener {
@@ -53,8 +53,8 @@ class BluetoothDeviceAdapter(
             }
 
             holder.buttonB.setOnClickListener {
-                Timber.v("$deviceAddress: on B clicked")
-                // bluetoothOrchestrator.connectWithLibrary(btDevices[position])
+                Timber.v("$deviceAddress: on Classic clicked")
+                navController.navigate(ConnectionsFragmentDirections.actionConnectionsFragmentToConnectionDetailClassicFragment(deviceAddress))
             }
             holder.address.setOnClickListener {
                 if (position == expandedItem) {
@@ -67,6 +67,7 @@ class BluetoothDeviceAdapter(
                 notifyDataSetChanged()
             }
         }
+
     }
 
     override fun getItemCount(): Int {
@@ -103,5 +104,6 @@ class DeviceViewHolder(private val binding: BluetoothDeviceItemBinding) :
         binding.deviceType.text = deviceType
         binding.connectButtons.visibility = if (isExpanded && !isConnected) View.VISIBLE else View.GONE
         binding.buttonShowConnection.visibility = if (isExpanded && isConnected) View.VISIBLE else View.GONE
+        binding.executePendingBindings()
     }
 }

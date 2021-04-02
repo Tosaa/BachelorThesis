@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:bind="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <data>
+
+        <variable
+            name="viewmodel"
+            type="asaa.bachelor.bleconnector.connections.connection.classic.ConnectionDetailClassicViewModel" />
+
+        <import type="android.view.View" />
+    </data>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="@dimen/deep_padding"
+            android:orientation="vertical">
+
+            <com.google.android.material.textview.MaterialTextView
+                android:id="@+id/device_name"
+                style="@style/AppTheme.TextView.Title"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@{viewmodel.deviceName}"
+                android:visibility="@{viewmodel.deviceName.length() > 0 ? View.VISIBLE : View.GONE}"
+                tools:text="device name" />
+
+            <com.google.android.material.textview.MaterialTextView
+                android:id="@+id/device_mac"
+                style="@style/AppTheme.TextView.SubTitle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@{viewmodel.macAddress}"
+                tools:text="00-00-00-00-00-00" />
+
+
+            <include
+                android:id="@+id/connection_state"
+                layout="@layout/state_button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                app:isButtonVisible="@{true}"
+                app:state="@{viewmodel.connectionState.toString()}"
+                app:text="@{viewmodel.connectButtonText}" />
+
+        </LinearLayout>
+
+
+    </LinearLayout>
+</layout>

@@ -39,15 +39,19 @@ class BluetoothOrchestrator @Inject constructor(@ApplicationContext val context:
         }
     }
 
+    private fun addDeviceToList(bluetoothDevice: BluetoothDevice) {
+        if (!btDevices.contains(bluetoothDevice)) {
+            btDevices.add(bluetoothDevice)
+        }
+    }
+
     // Callback
     private val scanCallback = object : ScanCallback() {
         override fun onScanResult(callbackType: Int, result: ScanResult?) {
             super.onScanResult(callbackType, result)
             Timber.v("onScanResult: ${result?.device?.address} [${result?.rssi}]")
             result?.device?.let {
-                if (!btDevices.contains(it)) {
-                    btDevices.add(it)
-                }
+                addDeviceToList(it)
             }
         }
 
@@ -83,6 +87,16 @@ class BluetoothOrchestrator @Inject constructor(@ApplicationContext val context:
         Timber.i("Stop Discovery Devices")
         handler.removeCallbacksAndMessages(null)
         btAdapter.bluetoothLeScanner.stopScan(scanCallback)
+        btAdapter.cancelDiscovery()
+    }
+
+    fun startClassicDiscovery() {
+        Timber.i("Start Discovery Classic Devices")
+        btAdapter.startDiscovery()
+    }
+
+    fun addBluetoothDevice(btDevice: BluetoothDevice) {
+        addDeviceToList(btDevice)
     }
 
     override fun connect(macAddress: String): BluetoothConnection? {
@@ -104,6 +118,10 @@ class BluetoothOrchestrator @Inject constructor(@ApplicationContext val context:
 
     fun connectionFor(macAddress: String): BluetoothConnection? {
         btDevices.find { it.address == macAddress }?.let {
+            if (it.type == BluetoothDevice.DEVICE_TYPE_UNKNOWN || it.type == BluetoothDevice.DEVICE_TYPE_CLASSIC) {
+                Timber.v("try to get Connection for non ble device: ${it.address}")
+                return null
+            }
             if (btDeviceConnectionMap[it] == null) {
                 btDeviceConnectionMap[it] = BluetoothConnection(it)
             }

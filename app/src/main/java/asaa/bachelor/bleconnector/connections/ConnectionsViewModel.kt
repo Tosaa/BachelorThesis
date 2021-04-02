@@ -8,15 +8,21 @@ import timber.log.Timber
 import javax.inject.Inject
 
 @HiltViewModel
-class ConnectionsViewModel @Inject constructor(val btOrchestrator: BluetoothOrchestrator) :
+class ConnectionsViewModel @Inject constructor(private val btOrchestrator: BluetoothOrchestrator) :
     ViewModel() {
     val isScanning = MutableLiveData(false)
     val btDevicesSize = MutableLiveData(btOrchestrator.btDevices.size)
 
-    fun startScanning() {
-        Timber.i("onClick: StartDiscovery")
-        isScanning.postValue(true)
-        btOrchestrator.startDiscovery()
+    fun startScanning(scanLowEnergy: Boolean = true) {
+        if (scanLowEnergy) {
+            Timber.i("onClick: StartDiscovery LE")
+            isScanning.postValue(true)
+            btOrchestrator.startDiscovery()
+        } else {
+            Timber.i("onClick: StartDiscovery LE")
+            isScanning.postValue(true)
+            btOrchestrator.startClassicDiscovery()
+        }
     }
 
     fun stopScanning() {

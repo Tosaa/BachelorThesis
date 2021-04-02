@@ -39,6 +39,9 @@
         <action
             android:id="@+id/action_connectionsFragment_to_simultanConnectionFragment"
             app:destination="@id/simultanConnectionFragment" />
+        <action
+            android:id="@+id/action_connectionsFragment_to_connectionDetailClassicFragment"
+            app:destination="@id/connectionDetailClassicFragment" />
     </fragment>
     <fragment
         android:id="@+id/connectionDetail"
@@ -52,4 +55,12 @@
         android:id="@+id/simultanConnectionFragment"
         android:name="asaa.bachelor.bleconnector.connections.connection.multi.SimultanConnectionFragment"
         android:label="SimultanConnectionFragment" />
+    <fragment
+        android:id="@+id/connectionDetailClassicFragment"
+        android:name="asaa.bachelor.bleconnector.connections.connection.classic.ConnectionDetailClassicFragment"
+        android:label="ConnectionDetailClassicFragment" >
+        <argument
+            android:name="macAddress"
+            app:argType="string" />
+    </fragment>
 </navigation>

@@ -11,7 +11,7 @@
         <import type="android.view.View" />
     </data>
 
-    <androidx.constraintlayout.widget.ConstraintLayout
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical"
@@ -20,27 +20,36 @@
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/bt_devices_recycler_view"
             android:layout_width="match_parent"
-            android:layout_height="0dp"
-            app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
-            app:layout_constraintBottom_toTopOf="@id/control_buttons"
-            app:layout_constraintTop_toTopOf="parent" />
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" />
 
         <LinearLayout
             android:id="@+id/control_buttons"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="@dimen/deep_padding"
-            android:gravity="center_vertical"
-            android:orientation="horizontal"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintLeft_toLeftOf="parent">
+            android:layout_weight="0"
+            android:columnCount="2"
+            android:gravity="center"
+            android:orientation="horizontal">
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/start_discovery_button"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_margin="5dp"
-                android:text="start"
+                android:lines="2"
+                android:text="start\nLE"
+                android:visibility="@{viewmodel.isScanning ? View.GONE : View.VISIBLE}" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/start_classic_discovery_button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_margin="5dp"
+                android:lines="2"
+                android:text="start\nClassic"
                 android:visibility="@{viewmodel.isScanning ? View.GONE : View.VISIBLE}" />
 
             <com.google.android.material.button.MaterialButton
@@ -51,22 +60,32 @@
                 android:text="stop"
                 android:visibility="@{viewmodel.isScanning ? View.VISIBLE : View.GONE}" />
 
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="@dimen/deep_padding"
+            android:layout_weight="0"
+            android:columnCount="2"
+            android:gravity="center"
+            android:orientation="horizontal">
+
             <com.google.android.material.button.MaterialButton
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_margin="5dp"
                 android:onClick="@{()->viewmodel.closeAll()}"
-                android:text="close all" />
+                android:text="close\nall" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/simultan_esp_actions"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
                 android:layout_margin="5dp"
-                android:text="Simultan ESP Actions" />
-
+                android:lines="2"
+                android:text="Simultan\nActions" />
         </LinearLayout>
 
-    </androidx.constraintlayout.widget.ConstraintLayout>
+    </LinearLayout>
 </layout>

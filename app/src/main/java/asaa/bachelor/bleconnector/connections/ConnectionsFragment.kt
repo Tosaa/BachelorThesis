@@ -39,9 +39,15 @@ class ConnectionsFragment : Fragment() {
         binding.lifecycleOwner = this
         setupBtDevicesAdapter(binding.btDevicesRecyclerView)
         binding.startDiscoveryButton.setOnClickListener {
-            Timber.i("start Discovery")
+            Timber.i("start LE Discovery")
             viewModel.startScanning()
         }
+
+        binding.startClassicDiscoveryButton.setOnClickListener {
+            Timber.i("start Classic Discovery")
+            viewModel.startScanning(scanLowEnergy = false)
+        }
+
         binding.stopDiscoveryButton.setOnClickListener {
             Timber.i("stop Discovery")
             viewModel.stopScanning()
