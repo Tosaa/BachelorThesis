@@ -43,9 +43,9 @@ abstract class BluetoothLowEnergyDevice(device: BluetoothDevice) : CustomBluetoo
         }
 
     // observer
-    private val generalObserver: MutableList<IStatusObserver> = mutableListOf()
+    private val generalObserver: MutableList<DeviceStateObserver> = mutableListOf()
 
-    fun addGeneralObserver(o: IStatusObserver) {
+    fun addGeneralObserver(o: DeviceStateObserver) {
         Timber.d("$deviceTag: add general Observer: $o")
         generalObserver.add(o)
         o.onConnectionStateChanged(connectionStatus)
@@ -53,7 +53,7 @@ abstract class BluetoothLowEnergyDevice(device: BluetoothDevice) : CustomBluetoo
         o.onBondStateChanged(bondState)
     }
 
-    fun removeGeneralObserver(o: IStatusObserver) {
+    fun removeGeneralObserver(o: DeviceStateObserver) {
         Timber.d("$deviceTag: remove general Observer: $o")
         generalObserver.remove(o)
     }
@@ -227,9 +227,12 @@ abstract class BluetoothLowEnergyDevice(device: BluetoothDevice) : CustomBluetoo
         bluetoothGatt?.disconnect()
     }
 
+    open fun initializeCharacteristics() {}
 
     abstract fun onReadResult(characteristic: BluetoothGattCharacteristic?)
     abstract fun onWriteResult(characteristic: BluetoothGattCharacteristic?)
+    abstract fun onCharacteristicChangedResult(characteristic: BluetoothGattCharacteristic?)
+    abstract fun onNoitificationChangedResult(characteristic: BluetoothGattCharacteristic?, notificationStatus: NotificationStatus)
 
     inner class BluetoothCallback : LogableBluetoothGattCallback() {
 
@@ -244,11 +247,19 @@ abstract class BluetoothLowEnergyDevice(device: BluetoothDevice) : CustomBluetoo
 
         override fun onDescriptorWrite(gatt: BluetoothGatt?, descriptor: BluetoothGattDescriptor?, status: Int) {
             super.onDescriptorWrite(gatt, descriptor, status)
+            val isActive = when (descriptor?.value) {
+                BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE, BluetoothGattDescriptor.ENABLE_INDICATION_VALUE -> true
+                else -> false
+            }
+            if (BluetoothGattStatus.get(status) == BluetoothGattStatus.GATT_SUCCESS) {
+                onNoitificationChangedResult(descriptor?.characteristic, NotificationStatus.DONE(isActive))
+            }
             Timber.d("$deviceTag: onDescriptorWrite: $gatt, ${BluetoothGattStatus.get(status)}")
         }
 
         override fun onCharacteristicChanged(gatt: BluetoothGatt?, characteristic: BluetoothGattCharacteristic?) {
             super.onCharacteristicChanged(gatt, characteristic)
+            onCharacteristicChangedResult(characteristic)
             Timber.d("$deviceTag: onCharacteristicChanged: $gatt")
             characteristic?.let {
                 notifyOnRead(it, it.value)
@@ -268,6 +279,7 @@ abstract class BluetoothLowEnergyDevice(device: BluetoothDevice) : CustomBluetoo
                         "${it.uuid}(${BtUtil.characteristicToString(it.uuid.toString())})"
                     })
             }
+            initializeCharacteristics()
         }
 
         override fun onCharacteristicWrite(gatt: BluetoothGatt?, characteristic: BluetoothGattCharacteristic?, status: Int) {
@@ -327,9 +339,8 @@ abstract class BluetoothLowEnergyDevice(device: BluetoothDevice) : CustomBluetoo
             if (status == BluetoothGatt.GATT_SUCCESS) {
                 if (newState == BluetoothProfile.STATE_CONNECTED) {
                     Timber.i("$deviceTag: Successfully connected")
-
+                    // Automatic discover services:
                     /*
-
                         discoveryStatus = DiscoveryStatus.STARTED
                         Handler(Looper.getMainLooper()).run {
                             gatt.discoverServices()

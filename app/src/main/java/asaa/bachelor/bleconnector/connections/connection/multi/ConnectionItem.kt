@@ -4,13 +4,11 @@ import android.bluetooth.BluetoothGattCharacteristic
 import android.content.Context
 import androidx.lifecycle.MutableLiveData
 import asaa.bachelor.bleconnector.bt.*
-import asaa.bachelor.bleconnector.bt.common.CustomCharacteristic
-import asaa.bachelor.bleconnector.bt.common.CustomService
-import asaa.bachelor.bleconnector.bt.custom.le.CustomLowEnergyDevice
+import asaa.bachelor.bleconnector.bt.custom.le.ESP32Device
 import asaa.bachelor.bleconnector.bt.manager.BluetoothManager
 import timber.log.Timber
 
-data class ConnectionItem(val address: String, private val manager: BluetoothManager) : IStatusObserver {
+data class ConnectionItem(val address: String, private val manager: BluetoothManager) : DeviceStateObserver {
     var asLiveData = MutableLiveData(this)
 
     val timeKeeper = TimeKeeper()
@@ -26,7 +24,7 @@ data class ConnectionItem(val address: String, private val manager: BluetoothMan
             field = value
         }
 
-    var connection = manager.btDevices.find { it.address == address } as CustomLowEnergyDevice
+    var connection = manager.btDevices.find { it.address == address } as ESP32Device
 
     var isObserving = false
         set(value) {
@@ -35,7 +33,7 @@ data class ConnectionItem(val address: String, private val manager: BluetoothMan
         }
 
     fun connect(context: Context) {
-        connection = manager.btDevices.find { it.address == address } as CustomLowEnergyDevice
+        connection = manager.btDevices.find { it.address == address } as ESP32Device
         if (!isObserving) {
             connection?.addGeneralObserver(this)
             isObserving = true

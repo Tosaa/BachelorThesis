@@ -8,12 +8,10 @@ import android.bluetooth.le.ScanResult
 import android.bluetooth.le.ScanSettings
 import android.content.Context
 import android.os.Handler
-import asaa.bachelor.bleconnector.bt.custom.le.BluetoothLowEnergyDevice
-import asaa.bachelor.bleconnector.bt.ConnectionStatus
 import asaa.bachelor.bleconnector.bt.IBluetoothOrchestrator
 import asaa.bachelor.bleconnector.bt.custom.CustomBluetoothDevice
 import asaa.bachelor.bleconnector.bt.custom.classic.CustomClassicDevice
-import asaa.bachelor.bleconnector.bt.custom.le.CustomLowEnergyDevice
+import asaa.bachelor.bleconnector.bt.custom.le.ESP32Device
 import dagger.hilt.android.qualifiers.ApplicationContext
 import timber.log.Timber
 import javax.inject.Inject
@@ -24,7 +22,7 @@ class BluetoothManager @Inject constructor(@ApplicationContext val context: Cont
     IBluetoothOrchestrator {
 
     init {
-        Timber.v("bluetooth Orchestrator created")
+        Timber.v("BluetoothManager created")
     }
 
     private val btAdapter = BluetoothAdapter.getDefaultAdapter()
@@ -39,10 +37,14 @@ class BluetoothManager @Inject constructor(@ApplicationContext val context: Cont
             notifyDiscoveryFound(bluetoothDevice)
             btDevices.add(bluetoothDevice)
             when (bluetoothDevice.type) {
-                BluetoothDevice.DEVICE_TYPE_LE -> customBluetoothDevices.add(CustomLowEnergyDevice(bluetoothDevice))
+                BluetoothDevice.DEVICE_TYPE_LE -> customBluetoothDevices.add(ESP32Device(bluetoothDevice))
                 BluetoothDevice.DEVICE_TYPE_CLASSIC -> customBluetoothDevices.add(CustomClassicDevice(bluetoothDevice))
             }
         }
+    }
+
+    fun getCustomBluetoothDeviceFor(macAddress: String): CustomBluetoothDevice? {
+        return customBluetoothDevices.find { it.device.address == macAddress }
     }
 
     // Callback
