@@ -9,10 +9,11 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import timber.log.Timber
+import java.io.BufferedReader
 import java.io.InputStreamReader
 import java.util.*
 
-abstract open class BluetoothClassicDevice(device: BluetoothDevice) : CustomBluetoothDevice(device) {
+abstract class BluetoothClassicDevice(device: BluetoothDevice) : CustomBluetoothDevice(device) {
 
     abstract val uuid: UUID
     abstract val name: String
@@ -63,11 +64,18 @@ abstract open class BluetoothClassicDevice(device: BluetoothDevice) : CustomBlue
     // Connect
     // Disconnect
     // listener -> on Connection Changed
+    fun disconnect(){
+        btAdapter.cancelDiscovery()
+        connectionState = ConnectionStatus.DISCONNECTED("End By User")
+    }
 
     fun connect(coroutineScope: CoroutineScope) {
+        btAdapter.cancelDiscovery()
+        if(connectionState == ConnectionStatus.CONNECTING){
+            connectionState = ConnectionStatus.DISCONNECTED("End by connect while being connected")
+        }
         coroutineScope.launch(Dispatchers.IO) {
             connectionState = ConnectionStatus.CONNECTING
-            btAdapter.cancelDiscovery()
             Timber.d("$deviceTag Try to create InsecureRfcommSocketToServiceRecord")
             connectionState = try {
 
@@ -84,11 +92,12 @@ abstract open class BluetoothClassicDevice(device: BluetoothDevice) : CustomBlue
 
 
             while (connectionState == ConnectionStatus.CONNECTED) {
-                val text = CharArray(10)
+                val text = CharArray(255)
+                val reader = BufferedReader(InputStreamReader(blSocket?.inputStream))
                 try {
-                    InputStreamReader(blSocket?.inputStream).read(text, 0, 10)
-                    if (text.isNotEmpty()) {
-                        notifyOnRead(text.map { it.toByte() }.toByteArray())
+                    val received = reader.readLine()
+                    if (received.isNotEmpty()) {
+                        notifyOnRead(received.map { it.toByte() }.toByteArray())
                     }
                 } catch (e: Exception) {
                     Timber.w("$deviceTag exception while connected: $e")

@@ -10,12 +10,14 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.navArgs
+import asaa.bachelor.bleconnector.bt.ConnectionStatus
 import asaa.bachelor.bleconnector.bt.custom.classic.BluetoothClassicDevice
 import asaa.bachelor.bleconnector.bt.custom.classic.CustomClassicDevice
 import asaa.bachelor.bleconnector.bt.manager.BluetoothManager
 import asaa.bachelor.bleconnector.connections.connection.ConnectionDetailFragmentArgs
 import asaa.bachelor.bleconnector.databinding.ConnectionDetailClassicFragmentBinding
 import dagger.hilt.android.AndroidEntryPoint
+import timber.log.Timber
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -26,10 +28,11 @@ class ConnectionDetailClassicFragment : Fragment() {
     lateinit var binding: ConnectionDetailClassicFragmentBinding
     val viewModel: ConnectionDetailClassicViewModel by viewModels()
     val args: ConnectionDetailFragmentArgs by navArgs()
+
     lateinit var macAddress: String
     private lateinit var btDevice: BluetoothDevice
-    val bluetoothAdapter = BluetoothAdapter.getDefaultAdapter()
     private var deviceBluetooth: BluetoothClassicDevice? = null
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -41,21 +44,35 @@ class ConnectionDetailClassicFragment : Fragment() {
         btDevice = bluetoothManager.btDevices.first { it.address == macAddress }
         viewModel.bluetoothDevice.postValue(btDevice)
         setupBinding()
+        deviceBluetooth = CustomClassicDevice(btDevice)
         return binding.root
+    }
+
+    override fun onResume() {
+        super.onResume()
+        deviceBluetooth?.addObserver(viewModel)
+
     }
 
     private fun setupBinding() {
         binding.connectionState.stateButton.setOnClickListener {
-            startConnection()
+            if(viewModel.connectionState.value == ConnectionStatus.CONNECTED)
+                stopConnection()
+            else
+                startConnection()
         }
         binding.writeButton.setOnClickListener {
             deviceBluetooth?.write(lifecycleScope, "Test")
         }
     }
 
+    private fun stopConnection() {
+        Timber.i("${btDevice.address} on stop Connection clicked")
+        deviceBluetooth?.disconnect()
+    }
+
     private fun startConnection() {
-        deviceBluetooth = CustomClassicDevice(btDevice)
-        deviceBluetooth?.addObserver(viewModel)
+        Timber.i("${btDevice.address} on start Connection clicked")
         deviceBluetooth?.connect(lifecycleScope)
     }
 

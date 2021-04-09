@@ -87,6 +87,7 @@ class BluetoothManager @Inject constructor(@ApplicationContext val context: Cont
             handler.postDelayed({
                 stopDiscovery()
             }, 10000L)
+            isScanning = true
         } else {
             Timber.w("Start Discovering Low Energy Devices was called while Scanning")
         }
@@ -99,6 +100,7 @@ class BluetoothManager @Inject constructor(@ApplicationContext val context: Cont
             notifyDiscoveryStoped()
             btAdapter.bluetoothLeScanner.stopScan(scanCallback)
             btAdapter.cancelDiscovery()
+            isScanning = false
         } else {
             Timber.w("Stop Discovering Devices was called without Scanning in progress")
         }
@@ -109,6 +111,7 @@ class BluetoothManager @Inject constructor(@ApplicationContext val context: Cont
             Timber.i("Start Discovering Classic Devices")
             notifyDiscoveryStarted()
             btAdapter.startDiscovery()
+            isScanning=true
         } else {
             Timber.w("Start Discovering classic Devices was called while Scanning")
         }

@@ -19,7 +19,7 @@ class ConnectionsViewModel @Inject constructor(private val btManager: BluetoothM
             isScanning.postValue(true)
             btManager.startLowEnergyDiscovery()
         } else {
-            Timber.i("onClick: StartDiscovery LE")
+            Timber.i("onClick: StartDiscovery Classic")
             isScanning.postValue(true)
             btManager.startClassicDiscovery()
         }
