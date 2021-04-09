@@ -12,19 +12,19 @@ import asaa.bachelor.bleconnector.bt.common.CustomCharacteristic
 import asaa.bachelor.bleconnector.bt.common.CustomService
 import asaa.bachelor.bleconnector.bt.custom.le.ESP32Device
 import asaa.bachelor.bleconnector.bt.manager.BluetoothManager
-import asaa.bachelor.bleconnector.databinding.ConnectionDetailFragmentBinding
+import asaa.bachelor.bleconnector.databinding.Esp32FragmentBinding
 import dagger.hilt.android.AndroidEntryPoint
 import timber.log.Timber
 import javax.inject.Inject
 
 @AndroidEntryPoint
-class ConnectionDetailFragment : Fragment() {
+class ESP32Fragment : Fragment() {
 
     @Inject
     lateinit var bluetoothManager: BluetoothManager
     val viewModel: ConnectionDetailViewModel by viewModels()
-    lateinit var binding: ConnectionDetailFragmentBinding
-    val args: ConnectionDetailFragmentArgs by navArgs()
+    lateinit var binding: Esp32FragmentBinding
+    val args: ESP32FragmentArgs by navArgs()
     lateinit var macAddress: String
     var leDevice: ESP32Device? = null
 
@@ -32,7 +32,7 @@ class ConnectionDetailFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        binding = ConnectionDetailFragmentBinding.inflate(inflater, container, false)
+        binding = Esp32FragmentBinding.inflate(inflater, container, false)
         binding.lifecycleOwner = viewLifecycleOwner
         binding.viewmodel = viewModel
         macAddress = args.macAddress
@@ -80,7 +80,7 @@ class ConnectionDetailFragment : Fragment() {
                 viewModel.discoverState.value.let { discoveryState ->
                     if (discoveryState is DiscoveryStatus.DISCOVERED) {
                         Timber.i("$macAddress: onClick: Show Device Info")
-                        discoveryState?.services.joinToString(separator = "\n\n") {
+                        discoveryState.services.joinToString(separator = "\n\n") {
                             BtUtil.serviceToString(it.uuid.toString()) + "\n" +
                                     it.characteristics.joinToString("\n-", prefix = "-") {
                                         BtUtil.characteristicToString(it.uuid.toString())

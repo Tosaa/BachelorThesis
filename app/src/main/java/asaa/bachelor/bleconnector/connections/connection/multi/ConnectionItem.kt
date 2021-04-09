@@ -24,7 +24,7 @@ data class ConnectionItem(val address: String, private val manager: BluetoothMan
             field = value
         }
 
-    var connection = manager.btDevices.find { it.address == address } as ESP32Device
+    var connection = manager.getCustomBluetoothDeviceFor(address) as ESP32Device
 
     var isObserving = false
         set(value) {
@@ -33,12 +33,12 @@ data class ConnectionItem(val address: String, private val manager: BluetoothMan
         }
 
     fun connect(context: Context) {
-        connection = manager.btDevices.find { it.address == address } as ESP32Device
+        connection = manager.getCustomBluetoothDeviceFor(address) as ESP32Device
         if (!isObserving) {
-            connection?.addGeneralObserver(this)
+            connection.addGeneralObserver(this)
             isObserving = true
         }
-        connection?.connect(context, false)
+        connection.connect(context, false)
         timeKeeper.start("connect")
     }
 
@@ -46,7 +46,7 @@ data class ConnectionItem(val address: String, private val manager: BluetoothMan
     fun requestMTU(mtu: Int): Boolean {
         val requestIsGood = if (isReady) {
             timeKeeper.start("request MTU")
-            connection?.requestMtu(mtu) ?: false
+            connection.requestMtu(mtu) ?: false
         } else {
             false
         }
@@ -59,20 +59,20 @@ data class ConnectionItem(val address: String, private val manager: BluetoothMan
     fun writeConnectionInterval(interval: String): Boolean {
         if (isReady) {
             timeKeeper.start("write Interval:$interval")
-            connection?.changeConnectionParameter(interval.toInt())
+            connection.changeConnectionParameter(interval.toInt())
         }
         return false
     }
 
     fun disconnect() {
         timeKeeper.start("disconnect")
-        connection?.disconnect()
+        connection.disconnect()
     }
 
     fun readC1() {
         if (isReady) {
             timeKeeper.start("read1")
-            connection?.readCharacteristic1()
+            connection.readCharacteristic1()
         } else
             Timber.w("read Characteristic 1 is not possible because $address is not ready")
     }
@@ -80,7 +80,7 @@ data class ConnectionItem(val address: String, private val manager: BluetoothMan
     fun readC2() {
         if (isReady) {
             timeKeeper.start("read2")
-            connection?.readCharacteristic2()
+            connection.readCharacteristic2()
 
         } else
             Timber.w("read Characteristic 2 is not possible because $address is not ready")
@@ -119,7 +119,7 @@ data class ConnectionItem(val address: String, private val manager: BluetoothMan
         Timber.d("$address is $newStatus")
         when (newStatus) {
             is ConnectionStatus.CONNECTED -> {
-                connection?.discoverServices()
+                connection.discoverServices()
                 timeKeeper.log("connected")
             }
             is ConnectionStatus.DISCONNECTED -> {
@@ -127,7 +127,7 @@ data class ConnectionItem(val address: String, private val manager: BluetoothMan
                 timeKeeper.end("disconnected")
                 if (isObserving) {
                     isObserving = false
-                    connection?.removeGeneralObserver(this)
+                    connection.removeGeneralObserver(this)
                 }
             }
             else -> {

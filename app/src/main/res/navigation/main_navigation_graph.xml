@@ -45,7 +45,7 @@
     </fragment>
     <fragment
         android:id="@+id/connectionDetail"
-        android:name="asaa.bachelor.bleconnector.connections.connection.ConnectionDetailFragment"
+        android:name="asaa.bachelor.bleconnector.connections.connection.ESP32Fragment"
         android:label="ConnectionDetail" >
         <argument
             android:name="macAddress"
