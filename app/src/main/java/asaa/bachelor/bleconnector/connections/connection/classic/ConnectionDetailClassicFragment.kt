@@ -11,6 +11,7 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.navArgs
 import asaa.bachelor.bleconnector.bt.custom.classic.BluetoothClassicDevice
+import asaa.bachelor.bleconnector.bt.custom.classic.CustomClassicDevice
 import asaa.bachelor.bleconnector.bt.manager.BluetoothManager
 import asaa.bachelor.bleconnector.connections.connection.ConnectionDetailFragmentArgs
 import asaa.bachelor.bleconnector.databinding.ConnectionDetailClassicFragmentBinding
@@ -53,7 +54,7 @@ class ConnectionDetailClassicFragment : Fragment() {
     }
 
     private fun startConnection() {
-        deviceBluetooth = BluetoothClassicDevice(btDevice)
+        deviceBluetooth = CustomClassicDevice(btDevice)
         deviceBluetooth?.addObserver(viewModel)
         deviceBluetooth?.connect(lifecycleScope)
     }
