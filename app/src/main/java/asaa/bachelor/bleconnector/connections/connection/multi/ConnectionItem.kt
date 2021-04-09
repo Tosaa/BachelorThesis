@@ -5,9 +5,10 @@ import androidx.lifecycle.MutableLiveData
 import asaa.bachelor.bleconnector.bt.*
 import asaa.bachelor.bleconnector.bt.common.CustomCharacteristic
 import asaa.bachelor.bleconnector.bt.common.CustomService
+import asaa.bachelor.bleconnector.bt.manager.BluetoothManager
 import timber.log.Timber
 
-data class ConnectionItem(val address: String, private val orchestrator: BluetoothOrchestrator) : IStatusObserver {
+data class ConnectionItem(val address: String, private val manager: BluetoothManager) : IStatusObserver {
     var asLiveData = MutableLiveData(this)
 
     val timeKeeper = TimeKeeper()
@@ -23,7 +24,7 @@ data class ConnectionItem(val address: String, private val orchestrator: Bluetoo
             field = value
         }
 
-    var connection = orchestrator.connectionFor(address)
+    var connection = manager.connectionFor(address)
 
     var isObserving = false
         set(value) {
@@ -32,12 +33,12 @@ data class ConnectionItem(val address: String, private val orchestrator: Bluetoo
         }
 
     fun connect() {
-        connection = orchestrator.connectionFor(address)
+        connection = manager.connectionFor(address)
         if (!isObserving) {
             connection?.addObserver(this)
             isObserving = true
         }
-        orchestrator.connect(address)
+        manager.connect(address)
         timeKeeper.start("connect")
     }
 

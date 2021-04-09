@@ -1,20 +1,20 @@
 package asaa.bachelor.bleconnector.connections
 
 import android.bluetooth.BluetoothDevice
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.navigation.NavController
 import androidx.recyclerview.widget.RecyclerView
 import asaa.bachelor.bleconnector.bt.*
+import asaa.bachelor.bleconnector.bt.manager.BluetoothManager
 import asaa.bachelor.bleconnector.databinding.BluetoothDeviceItemBinding
 import timber.log.Timber
 
 private const val TAG = "BluetoothDeviceAdapter"
 
 class BluetoothDeviceAdapter(
-    private val bluetoothOrchestrator: BluetoothOrchestrator,
+    private val bluetoothManager: BluetoothManager,
     private val navController: NavController
 ) :
     RecyclerView.Adapter<DeviceViewHolder>() {
@@ -76,7 +76,7 @@ class BluetoothDeviceAdapter(
 
     fun updateDevices(newBtDevices: List<BluetoothDevice>) {
         btDevices.clear()
-        btDevices.addAll(newBtDevices.map { BluetoothDeviceWithState(it, bluetoothOrchestrator.connectionFor(it.address)?.connectionStatus.let { it == ConnectionStatus.CONNECTED }) })
+        btDevices.addAll(newBtDevices.map { BluetoothDeviceWithState(it, bluetoothManager.connectionFor(it.address)?.connectionStatus.let { it == ConnectionStatus.CONNECTED }) })
         Timber.v("update all Bluetooth Devices in Adapter: $btDevices")
         notifyDataSetChanged()
     }

@@ -8,13 +8,14 @@ import androidx.lifecycle.map
 import asaa.bachelor.bleconnector.bt.*
 import asaa.bachelor.bleconnector.bt.common.CommonServices
 import asaa.bachelor.bleconnector.bt.common.CustomService
+import asaa.bachelor.bleconnector.bt.manager.BluetoothManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 
 private const val TAG = "ConnectionDetailViewModel"
 
 @HiltViewModel
-class ConnectionDetailViewModel @Inject constructor(val bluetoothOrchestrator: BluetoothOrchestrator) :
+class ConnectionDetailViewModel @Inject constructor(val bluetoothManager: BluetoothManager) :
     ViewModel() {
 
     // Bluetooth Device

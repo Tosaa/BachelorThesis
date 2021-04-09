@@ -16,6 +16,8 @@ import asaa.bachelor.bleconnector.bt.common.CommonCharacteristics
 import asaa.bachelor.bleconnector.bt.common.CommonServices
 import asaa.bachelor.bleconnector.bt.common.CustomCharacteristic
 import asaa.bachelor.bleconnector.bt.common.CustomService
+import asaa.bachelor.bleconnector.bt.custom.le.BluetoothLowEnergyDevice
+import asaa.bachelor.bleconnector.bt.manager.BluetoothManager
 import asaa.bachelor.bleconnector.databinding.ConnectionDetailFragmentBinding
 import dagger.hilt.android.AndroidEntryPoint
 import timber.log.Timber
@@ -25,12 +27,12 @@ import javax.inject.Inject
 class ConnectionDetailFragment : Fragment(), IStatusObserver {
 
     @Inject
-    lateinit var bluetoothOrchestrator: BluetoothOrchestrator
+    lateinit var bluetoothManager: BluetoothManager
     val viewModel: ConnectionDetailViewModel by viewModels()
     lateinit var binding: ConnectionDetailFragmentBinding
     val args: ConnectionDetailFragmentArgs by navArgs()
     lateinit var macAddress: String
-    var connection: BluetoothConnection? = null
+    var lowEnergyDevice: BluetoothLowEnergyDevice? = null
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -40,8 +42,8 @@ class ConnectionDetailFragment : Fragment(), IStatusObserver {
         binding.lifecycleOwner = viewLifecycleOwner
         binding.viewmodel = viewModel
         macAddress = args.macAddress
-        connection = bluetoothOrchestrator.connectionFor(macAddress)
-        connection?.let { viewModel.bluetoothDevice.postValue(it.device) }
+        lowEnergyDevice = bluetoothManager.connectionFor(macAddress)
+        lowEnergyDevice?.let { viewModel.bluetoothDevice.postValue(it.device) }
         setupBinding()
         return binding.root
     }
@@ -50,9 +52,9 @@ class ConnectionDetailFragment : Fragment(), IStatusObserver {
     override fun onResume() {
         super.onResume()
         Timber.v("onResume")
-        connection?.addObserver(this)
-        viewModel.isIndicateActive.postValue(connection?.isIndicateActive(CustomService.CUSTOM_SERVICE_1.uuid, CustomCharacteristic.INDICATE_CHARACTERISTIC.uuid))
-        viewModel.isNotifyActive.postValue(connection?.isNotifyActive(CustomService.CUSTOM_SERVICE_1.uuid, CustomCharacteristic.NOTIFY_CHARACTERISTIC.uuid))
+        lowEnergyDevice?.addObserver(this)
+        viewModel.isIndicateActive.postValue(lowEnergyDevice?.isIndicateActive(CustomService.CUSTOM_SERVICE_1.uuid, CustomCharacteristic.INDICATE_CHARACTERISTIC.uuid))
+        viewModel.isNotifyActive.postValue(lowEnergyDevice?.isNotifyActive(CustomService.CUSTOM_SERVICE_1.uuid, CustomCharacteristic.NOTIFY_CHARACTERISTIC.uuid))
     }
 
     override fun onConnectionStateChanged(newStatus: ConnectionStatus) {
@@ -120,26 +122,26 @@ class ConnectionDetailFragment : Fragment(), IStatusObserver {
     override fun onPause() {
         super.onPause()
         Timber.v("onPause")
-        connection?.removeObserver(this)
+        lowEnergyDevice?.removeObserver(this)
     }
 
     private fun setupBinding() {
         // CONNECTION STATE
         binding.connectionState.stateButton.setOnClickListener {
-            if (connection?.connectionStatus != viewModel.connectionState.value) {
-                Timber.w("ConnectionState of Viewmodel is not same as real ConnectionState: ${viewModel.connectionState.value} != ${connection?.connectionStatus}")
+            if (lowEnergyDevice?.connectionStatus != viewModel.connectionState.value) {
+                Timber.w("ConnectionState of Viewmodel is not same as real ConnectionState: ${viewModel.connectionState.value} != ${lowEnergyDevice?.connectionStatus}")
             }
             if (viewModel.isConnected.value == true) {
                 Timber.i("$macAddress: onClick: Disconnect")
-                connection?.disconnect()
+                lowEnergyDevice?.disconnect()
             } else {
                 Timber.i("$macAddress: onClick: Connect")
-                connection?.connect(requireContext(), false)
+                lowEnergyDevice?.connect(requireContext(), false)
             }
         }
         binding.bondingState.stateButton.setOnClickListener {
             Timber.i("$macAddress: onClick: Create bond")
-            connection?.device?.createBond()
+            lowEnergyDevice?.device?.createBond()
         }
         binding.discoveryState.stateButton.setOnClickListener {
             if (viewModel.isDiscovered.value == true) {
@@ -159,23 +161,23 @@ class ConnectionDetailFragment : Fragment(), IStatusObserver {
                 }
             } else {
                 Timber.i("$macAddress: onClick: Discover")
-                connection?.discoverServices()
+                lowEnergyDevice?.discoverServices()
             }
         }
         // BATTERY
         binding.batteryStatus.readButton.setOnClickListener {
             Timber.i("$macAddress: onClick: read Battery")
-            connection?.requestRead(CommonServices.Battery.longUUID, CommonCharacteristics.BatteryLevel.longUUID)
+            lowEnergyDevice?.requestRead(CommonServices.Battery.longUUID, CommonCharacteristics.BatteryLevel.longUUID)
         }
         // Custom Service
         binding.customStatus.readButton.setOnClickListener {
             Timber.i("$macAddress: onClick: read ${CustomService.CUSTOM_SERVICE_1},${CustomCharacteristic.READ_CHARACTERISTIC}")
-            connection?.requestRead(CustomService.CUSTOM_SERVICE_1.uuid, CustomCharacteristic.READ_CHARACTERISTIC.uuid)
-            connection?.requestRead(CustomService.CUSTOM_SERVICE_1.uuid, CustomCharacteristic.READ_CHARACTERISTIC_2.uuid)
+            lowEnergyDevice?.requestRead(CustomService.CUSTOM_SERVICE_1.uuid, CustomCharacteristic.READ_CHARACTERISTIC.uuid)
+            lowEnergyDevice?.requestRead(CustomService.CUSTOM_SERVICE_1.uuid, CustomCharacteristic.READ_CHARACTERISTIC_2.uuid)
         }
         binding.customStatus.notifyButton.setOnClickListener {
             Timber.i("$macAddress: onClick: Toggle Notify ${CustomService.CUSTOM_SERVICE_1}, ${CustomCharacteristic.NOTIFY_CHARACTERISTIC}")
-            connection?.let { conn ->
+            lowEnergyDevice?.let { conn ->
                 val isNotifyActive = viewModel.isNotifyActive.value ?: false
 
                 if (isNotifyActive) {
@@ -192,7 +194,7 @@ class ConnectionDetailFragment : Fragment(), IStatusObserver {
         }
         binding.customStatus.indicateButton.setOnClickListener {
             Timber.i("$macAddress: onClick: Toggle Indicate ${CustomService.CUSTOM_SERVICE_1}, ${CustomCharacteristic.INDICATE_CHARACTERISTIC}")
-            connection?.let { conn ->
+            lowEnergyDevice?.let { conn ->
                 val isIndicateActive = viewModel.isIndicateActive.value ?: false
                 if (isIndicateActive) {
                     Timber.v("stop Indicate")
@@ -208,13 +210,13 @@ class ConnectionDetailFragment : Fragment(), IStatusObserver {
         binding.customStatus.writeButton.setOnClickListener {
             val text = binding.customStatus.writeTextField.text.toString()
             Timber.i("$macAddress: onClick: Write ${CustomService.CUSTOM_SERVICE_1}, ${CustomCharacteristic.WRITE_CHARACTERISTIC}, $text")
-            connection?.requestWrite(CustomService.CUSTOM_SERVICE_1.uuid, CustomCharacteristic.WRITE_CHARACTERISTIC.uuid, text)
+            lowEnergyDevice?.requestWrite(CustomService.CUSTOM_SERVICE_1.uuid, CustomCharacteristic.WRITE_CHARACTERISTIC.uuid, text)
             binding.customStatus.writeTextField.setText("")
         }
         binding.customStatus.writeNoResponseButton.setOnClickListener {
             val text = binding.customStatus.writeTextField.text.toString()
             Timber.i("$macAddress: onClick: Write ${CustomService.CUSTOM_SERVICE_1}, ${CustomCharacteristic.WRITE_WO_RESPONSE_CHARACTERISTIC}, $text")
-            connection?.requestWrite(CustomService.CUSTOM_SERVICE_1.uuid, CustomCharacteristic.WRITE_WO_RESPONSE_CHARACTERISTIC.uuid, text)
+            lowEnergyDevice?.requestWrite(CustomService.CUSTOM_SERVICE_1.uuid, CustomCharacteristic.WRITE_WO_RESPONSE_CHARACTERISTIC.uuid, text)
             binding.customStatus.writeTextField.setText("")
         }
     }

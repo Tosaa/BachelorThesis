@@ -1,19 +1,16 @@
-package asaa.bachelor.bleconnector.bt
+package asaa.bachelor.bleconnector.bt.custom.le
 
 import android.bluetooth.*
 import android.content.Context
 import android.os.Handler
 import android.os.Looper
+import asaa.bachelor.bleconnector.bt.*
 import asaa.bachelor.bleconnector.bt.common.CommonDescriptors
+import asaa.bachelor.bleconnector.bt.custom.CustomBluetoothDevice
 import timber.log.Timber
 import java.util.*
 
-class BluetoothConnection(val device: BluetoothDevice) {
-    private val deviceTag = device.address?.toString() ?: ""
-
-    init {
-        Timber.d("$deviceTag: create BluetoothConnection")
-    }
+open class BluetoothLowEnergyDevice(device: BluetoothDevice) : CustomBluetoothDevice(device) {
 
     private var bluetoothGatt: BluetoothGatt? = null
 
@@ -43,10 +40,10 @@ class BluetoothConnection(val device: BluetoothDevice) {
         }
 
     // observer
-    val observers: MutableList<IStatusObserver> = mutableListOf()
+    private val observers: MutableList<IStatusObserver> = mutableListOf()
 
     // callback will trigger all observers and change state values
-    val callback = BluetoothCallback()
+    private val callback = BluetoothCallback()
 
     fun addObserver(o: IStatusObserver) {
         Timber.d("$deviceTag: add Observer: $o")
@@ -135,7 +132,7 @@ class BluetoothConnection(val device: BluetoothDevice) {
         val gattCharacteristic = bluetoothGatt?.getService(serviceUUID)?.getCharacteristic(characteristicUUID)
         Timber.d("$deviceTag: resolve Characteristic: $service - $characteristic - $gattCharacteristic")
         if (gattCharacteristic == null)
-            Timber.w("$deviceTag: could not find Characteristic of $service - $characteristic for device: $device")
+            Timber.w("$deviceTag: could not find Characteristic of $service - $characteristic")
         return gattCharacteristic
     }
 
@@ -270,7 +267,7 @@ class BluetoothConnection(val device: BluetoothDevice) {
     }
 
     fun connect(context: Context, autoConnect: Boolean) {
-        Timber.i("$deviceTag: connect $device (autoconnect:$autoConnect)")
+        Timber.i("$deviceTag: connect (autoconnect:$autoConnect)")
         connectionStatus = ConnectionStatus.CONNECTING
         device.connectGatt(context, autoConnect, callback, BluetoothDevice.TRANSPORT_LE)
     }
@@ -283,7 +280,7 @@ class BluetoothConnection(val device: BluetoothDevice) {
     inner class BluetoothCallback : LogableBluetoothGattCallback() {
 
         init {
-            Timber.d("$deviceTag: Create new BluetoothGattCallback for this(${device.address}) connection")
+            Timber.d("$deviceTag: Create new BluetoothGattCallback for this connection")
         }
 
         override fun onDescriptorRead(gatt: BluetoothGatt?, descriptor: BluetoothGattDescriptor?, status: Int) {
@@ -373,7 +370,7 @@ class BluetoothConnection(val device: BluetoothDevice) {
             bluetoothGatt = gatt
             if (status == BluetoothGatt.GATT_SUCCESS) {
                 if (newState == BluetoothProfile.STATE_CONNECTED) {
-                    Timber.i("$deviceTag: Successfully connected to ${device.address}")
+                    Timber.i("$deviceTag: Successfully connected")
 
                     /*
 
@@ -384,13 +381,13 @@ class BluetoothConnection(val device: BluetoothDevice) {
                         */
                 } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
                     discoveryStatus = DiscoveryStatus.NOT_DISCOVERED
-                    Timber.w("$deviceTag: Successfully disconnected from ${device.address}")
+                    Timber.w("$deviceTag: Successfully disconnected")
                     gatt.close()
                 }
                 connectionStatus = ConnectionStatus.get(newState)
             } else {
                 Timber.w(
-                    "Error $status encountered for ${device.address}! Disconnecting..."
+                    "$deviceTag Error $status encountered for Disconnecting..."
                 )
                 connectionStatus = ConnectionStatus.get(newState, status.toString())
                 gatt.close()

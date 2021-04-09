@@ -1,13 +1,6 @@
 package asaa.bachelor.bleconnector.connections
 
-import android.bluetooth.BluetoothDevice
-import android.content.Context
-import android.content.Intent
-import android.content.IntentFilter
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -15,8 +8,7 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.RecyclerView
-import androidx.work.impl.utils.ForceStopRunnable
-import asaa.bachelor.bleconnector.bt.*
+import asaa.bachelor.bleconnector.bt.manager.BluetoothManager
 import asaa.bachelor.bleconnector.databinding.ConnectionsFragmentBinding
 import dagger.hilt.android.AndroidEntryPoint
 import timber.log.Timber
@@ -29,7 +21,7 @@ class ConnectionsFragment : Fragment() {
     private lateinit var binding: ConnectionsFragmentBinding
 
     @Inject
-    lateinit var bluetoothOrchestrator: BluetoothOrchestrator
+    lateinit var bluetoothManager: BluetoothManager
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -61,12 +53,12 @@ class ConnectionsFragment : Fragment() {
 
     private fun setupBtDevicesAdapter(recyclerView: RecyclerView) {
 
-        val adapter = BluetoothDeviceAdapter(bluetoothOrchestrator, findNavController())
+        val adapter = BluetoothDeviceAdapter(bluetoothManager, findNavController())
 
         recyclerView.adapter = adapter
         viewModel.btDevicesSize.observe(viewLifecycleOwner) {
-            Timber.v("update BtDevices: ${bluetoothOrchestrator.btDevices}")
-            adapter.updateDevices(bluetoothOrchestrator.btDevices)
+            Timber.v("update BtDevices: ${bluetoothManager.btDevices}")
+            adapter.updateDevices(bluetoothManager.btDevices)
         }
     }
 

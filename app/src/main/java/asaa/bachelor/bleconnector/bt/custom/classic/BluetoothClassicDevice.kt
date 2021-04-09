@@ -1,18 +1,15 @@
-package asaa.bachelor.bleconnector.connections.connection.classic
+package asaa.bachelor.bleconnector.bt.custom.classic
 
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothSocket
-import asaa.bachelor.bleconnector.bt.IStatusObserver
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import timber.log.Timber
-import java.io.ByteArrayInputStream
 import java.io.InputStreamReader
-import java.nio.CharBuffer
 
-class ClassicDataExchangeService(private val device: BluetoothDevice) {
+class BluetoothClassicDevice(private val device: BluetoothDevice) {
 
     val UUID = java.util.UUID.fromString("00001101-0000-1000-8000-00805F9B34FB")
     val name = "BluetoothConnectionTest"
@@ -47,7 +44,7 @@ class ClassicDataExchangeService(private val device: BluetoothDevice) {
         observers.remove(o)
     }
 
-    private fun notifyConnectionStateChanged(status: ClassicDataExchangeService.ConnectionState) {
+    private fun notifyConnectionStateChanged(status: ConnectionState) {
         observers.forEach {
             it.onConnectionStateChanged(status)
         }
@@ -123,7 +120,7 @@ class ClassicDataExchangeService(private val device: BluetoothDevice) {
     }
 
     interface ConnectionStateObserver {
-        fun onConnectionStateChanged(connectionStatus: ClassicDataExchangeService.ConnectionState)
+        fun onConnectionStateChanged(connectionStatus: ConnectionState)
         fun onWrite(bytes: ByteArray)
         fun onRead(bytes: ByteArray)
     }
