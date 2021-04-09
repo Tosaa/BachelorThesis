@@ -1,10 +1,12 @@
 package asaa.bachelor.bleconnector.connections.connection.multi
 
 import android.bluetooth.BluetoothGattCharacteristic
+import android.content.Context
 import androidx.lifecycle.MutableLiveData
 import asaa.bachelor.bleconnector.bt.*
 import asaa.bachelor.bleconnector.bt.common.CustomCharacteristic
 import asaa.bachelor.bleconnector.bt.common.CustomService
+import asaa.bachelor.bleconnector.bt.custom.le.CustomLowEnergyDevice
 import asaa.bachelor.bleconnector.bt.manager.BluetoothManager
 import timber.log.Timber
 
@@ -24,7 +26,7 @@ data class ConnectionItem(val address: String, private val manager: BluetoothMan
             field = value
         }
 
-    var connection = manager.connectionFor(address)
+    var connection = manager.btDevices.find { it.address == address } as CustomLowEnergyDevice
 
     var isObserving = false
         set(value) {
@@ -32,13 +34,13 @@ data class ConnectionItem(val address: String, private val manager: BluetoothMan
             field = value
         }
 
-    fun connect() {
-        connection = manager.connectionFor(address)
+    fun connect(context: Context) {
+        connection = manager.btDevices.find { it.address == address } as CustomLowEnergyDevice
         if (!isObserving) {
-            connection?.addObserver(this)
+            connection?.addGeneralObserver(this)
             isObserving = true
         }
-        manager.connect(address)
+        connection?.connect(context, false)
         timeKeeper.start("connect")
     }
 
@@ -57,16 +59,11 @@ data class ConnectionItem(val address: String, private val manager: BluetoothMan
     }
 
     fun writeConnectionInterval(interval: String): Boolean {
-        val requestIsGood = if (isReady) {
+        if (isReady) {
             timeKeeper.start("write Interval:$interval")
-            connection?.requestWrite(CustomService.CUSTOM_SERVICE_1.uuid, CustomCharacteristic.CONNECTION_INTERVAL_CHARACTERISTIC.uuid, interval) ?: false
-        } else {
-            false
+            connection?.changeConnectionParameter(interval.toInt())
         }
-        if (!requestIsGood) {
-            timeKeeper.end("could not request new Connection Interval")
-        }
-        return requestIsGood
+        return false
     }
 
     fun disconnect() {
@@ -77,12 +74,7 @@ data class ConnectionItem(val address: String, private val manager: BluetoothMan
     fun readC1() {
         if (isReady) {
             timeKeeper.start("read1")
-            connection?.requestRead(CustomService.CUSTOM_SERVICE_1.uuid, CustomCharacteristic.READ_CHARACTERISTIC.uuid).let { response ->
-                Timber.i("$address read Characteristic 1: $response")
-                if (response == false) {
-                    timeKeeper.end("read1 not possible")
-                }
-            }
+            connection?.readCharacteristic1()
         } else
             Timber.w("read Characteristic 1 is not possible because $address is not ready")
     }
@@ -90,12 +82,8 @@ data class ConnectionItem(val address: String, private val manager: BluetoothMan
     fun readC2() {
         if (isReady) {
             timeKeeper.start("read2")
-            connection?.requestRead(CustomService.CUSTOM_SERVICE_1.uuid, CustomCharacteristic.READ_CHARACTERISTIC_2.uuid).let { response ->
-                Timber.i("$address read Characteristic 2: $response")
-                if (response == false) {
-                    timeKeeper.end("read2 not possible")
-                }
-            }
+            connection?.readCharacteristic2()
+
         } else
             Timber.w("read Characteristic 2 is not possible because $address is not ready")
     }
@@ -141,7 +129,7 @@ data class ConnectionItem(val address: String, private val manager: BluetoothMan
                 timeKeeper.end("disconnected")
                 if (isObserving) {
                     isObserving = false
-                    connection?.removeObserver(this)
+                    connection?.removeGeneralObserver(this)
                 }
             }
             else -> {

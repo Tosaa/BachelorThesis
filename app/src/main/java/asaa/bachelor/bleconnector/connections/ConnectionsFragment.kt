@@ -30,6 +30,7 @@ class ConnectionsFragment : Fragment() {
         binding.viewmodel = viewModel
         binding.lifecycleOwner = this
         setupBtDevicesAdapter(binding.btDevicesRecyclerView)
+
         binding.startDiscoveryButton.setOnClickListener {
             Timber.i("start LE Discovery")
             viewModel.startScanning()
@@ -57,8 +58,8 @@ class ConnectionsFragment : Fragment() {
 
         recyclerView.adapter = adapter
         viewModel.btDevicesSize.observe(viewLifecycleOwner) {
-            Timber.v("update BtDevices: ${bluetoothManager.btDevices}")
-            adapter.updateDevices(bluetoothManager.btDevices)
+            Timber.v("update BtDevices: ${bluetoothManager.customBluetoothDevices}")
+            adapter.updateDevices(bluetoothManager.customBluetoothDevices)
         }
     }
 

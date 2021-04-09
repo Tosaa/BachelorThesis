@@ -17,6 +17,8 @@ import asaa.bachelor.bleconnector.bt.common.CommonServices
 import asaa.bachelor.bleconnector.bt.common.CustomCharacteristic
 import asaa.bachelor.bleconnector.bt.common.CustomService
 import asaa.bachelor.bleconnector.bt.custom.le.BluetoothLowEnergyDevice
+import asaa.bachelor.bleconnector.bt.custom.le.CustomLowEnergyDevice
+import asaa.bachelor.bleconnector.bt.custom.le.NotificationStatus
 import asaa.bachelor.bleconnector.bt.manager.BluetoothManager
 import asaa.bachelor.bleconnector.databinding.ConnectionDetailFragmentBinding
 import dagger.hilt.android.AndroidEntryPoint
@@ -32,7 +34,7 @@ class ConnectionDetailFragment : Fragment(), IStatusObserver {
     lateinit var binding: ConnectionDetailFragmentBinding
     val args: ConnectionDetailFragmentArgs by navArgs()
     lateinit var macAddress: String
-    var lowEnergyDevice: BluetoothLowEnergyDevice? = null
+    var lowEnergyDevice: CustomLowEnergyDevice? = null
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -42,7 +44,7 @@ class ConnectionDetailFragment : Fragment(), IStatusObserver {
         binding.lifecycleOwner = viewLifecycleOwner
         binding.viewmodel = viewModel
         macAddress = args.macAddress
-        lowEnergyDevice = bluetoothManager.connectionFor(macAddress)
+        lowEnergyDevice = bluetoothManager.btDevices.find { it.address == macAddress }?.let { CustomLowEnergyDevice(it) }
         lowEnergyDevice?.let { viewModel.bluetoothDevice.postValue(it.device) }
         setupBinding()
         return binding.root
@@ -52,20 +54,19 @@ class ConnectionDetailFragment : Fragment(), IStatusObserver {
     override fun onResume() {
         super.onResume()
         Timber.v("onResume")
-        lowEnergyDevice?.addObserver(this)
-        viewModel.isIndicateActive.postValue(lowEnergyDevice?.isIndicateActive(CustomService.CUSTOM_SERVICE_1.uuid, CustomCharacteristic.INDICATE_CHARACTERISTIC.uuid))
-        viewModel.isNotifyActive.postValue(lowEnergyDevice?.isNotifyActive(CustomService.CUSTOM_SERVICE_1.uuid, CustomCharacteristic.NOTIFY_CHARACTERISTIC.uuid))
+        lowEnergyDevice?.addGeneralObserver(this)
+        viewModel.isIndicateActive.postValue(lowEnergyDevice?.indicateStatus == NotificationStatus.DONE(true))
+        viewModel.isNotifyActive.postValue(lowEnergyDevice?.notifyStatus == NotificationStatus.DONE(true))
     }
 
     override fun onConnectionStateChanged(newStatus: ConnectionStatus) {
         super.onConnectionStateChanged(newStatus)
-        Timber.v("$macAddress: onConnectionStateChanged ${viewModel.connectionState.value} - $newStatus")
         viewModel.connectionState.postValue(newStatus)
         if (newStatus is ConnectionStatus.DISCONNECTED) {
             // reset Fragment
             viewModel.isNotifyActive.postValue(false)
             viewModel.isIndicateActive.postValue(false)
-            if (newStatus.reason.length > 0) {
+            if (newStatus.reason.isNotEmpty()) {
                 Handler(Looper.getMainLooper()).post {
                     Toast.makeText(requireContext(), "could not connect because of ${newStatus.reason}", Toast.LENGTH_SHORT).show()
                 }
@@ -85,44 +86,10 @@ class ConnectionDetailFragment : Fragment(), IStatusObserver {
         viewModel.bondState.postValue(bond)
     }
 
-    override fun onWriteCharacteristic(characteristic: BluetoothGattCharacteristic, value: ByteArray, status: BluetoothGattStatus) {
-        super.onWriteCharacteristic(characteristic, value, status)
-        val writtenValue = value.joinToString(separator = "") { it.toChar().toString() }
-        val characteristicMatch = CommonCharacteristics.mapIfExists(characteristic.uuid.toString()) ?: CustomCharacteristic.mapIfExists(characteristic.uuid.toString())
-        Timber.v("$macAddress: onWriteCharacteristic: received: $writtenValue for $characteristicMatch")
-
-        when (status) {
-            BluetoothGattStatus.GATT_SUCCESS -> Handler(Looper.getMainLooper()).post { Toast.makeText(requireContext(), "wrote: $writtenValue", Toast.LENGTH_SHORT).show() }
-            BluetoothGattStatus.GATT_WRITE_NOT_PERMITTED -> {
-                Timber.w("Insufficient Permission to write: $characteristic")
-                return
-            }
-            else -> {
-                Timber.w("Error on Reading characteristic: $characteristic")
-                return
-            }
-        }
-    }
-
-    override fun onReadCharacteristic(characteristic: BluetoothGattCharacteristic, value: ByteArray) {
-        super.onReadCharacteristic(characteristic, value)
-        val uuid = characteristic.uuid.toString()
-        val readValue = value.joinToString(separator = "") { it.toChar().toString() }
-        val characteristicMatch = CommonCharacteristics.mapIfExists(uuid) ?: CustomCharacteristic.mapIfExists(uuid)
-        Timber.v("$macAddress: onReadCharacteristic: received: $readValue for $characteristicMatch")
-        when (characteristicMatch) {
-            CommonCharacteristics.BatteryLevel -> viewModel.batteryValue.postValue(readValue)
-            CustomCharacteristic.READ_CHARACTERISTIC -> viewModel.customReadValue.postValue(readValue)
-            CustomCharacteristic.READ_CHARACTERISTIC_2 -> viewModel.customReadValue.postValue(readValue)
-            CustomCharacteristic.INDICATE_CHARACTERISTIC -> viewModel.customIndicateValue.postValue(readValue)
-            CustomCharacteristic.NOTIFY_CHARACTERISTIC -> viewModel.customNotifyValue.postValue(readValue)
-        }
-    }
-
     override fun onPause() {
         super.onPause()
         Timber.v("onPause")
-        lowEnergyDevice?.removeObserver(this)
+        lowEnergyDevice?.removeGeneralObserver(this)
     }
 
     private fun setupBinding() {
@@ -164,32 +131,25 @@ class ConnectionDetailFragment : Fragment(), IStatusObserver {
                 lowEnergyDevice?.discoverServices()
             }
         }
-        // BATTERY
-        binding.batteryStatus.readButton.setOnClickListener {
-            Timber.i("$macAddress: onClick: read Battery")
-            lowEnergyDevice?.requestRead(CommonServices.Battery.longUUID, CommonCharacteristics.BatteryLevel.longUUID)
-        }
+
         // Custom Service
         binding.customStatus.readButton.setOnClickListener {
             Timber.i("$macAddress: onClick: read ${CustomService.CUSTOM_SERVICE_1},${CustomCharacteristic.READ_CHARACTERISTIC}")
-            lowEnergyDevice?.requestRead(CustomService.CUSTOM_SERVICE_1.uuid, CustomCharacteristic.READ_CHARACTERISTIC.uuid)
-            lowEnergyDevice?.requestRead(CustomService.CUSTOM_SERVICE_1.uuid, CustomCharacteristic.READ_CHARACTERISTIC_2.uuid)
+            lowEnergyDevice?.readCharacteristic1()
+            lowEnergyDevice?.readCharacteristic2()
         }
         binding.customStatus.notifyButton.setOnClickListener {
-            Timber.i("$macAddress: onClick: Toggle Notify ${CustomService.CUSTOM_SERVICE_1}, ${CustomCharacteristic.NOTIFY_CHARACTERISTIC}")
+            Timber.i("$macAddress: onClick: Toggle Notify")
             lowEnergyDevice?.let { conn ->
                 val isNotifyActive = viewModel.isNotifyActive.value ?: false
 
                 if (isNotifyActive) {
                     Timber.v("stop Notify")
-                    !conn.requestStopNotifyOrIndicate(CustomService.CUSTOM_SERVICE_1.uuid, CustomCharacteristic.NOTIFY_CHARACTERISTIC.uuid)
+                    lowEnergyDevice?.stopNotify()
                 } else {
                     Timber.v("start Notify")
-                    conn.requestStartNotify(CustomService.CUSTOM_SERVICE_1.uuid, CustomCharacteristic.NOTIFY_CHARACTERISTIC.uuid)
-                }.let { isActive ->
-                    viewModel.isNotifyActive.postValue(isActive)
+                    lowEnergyDevice?.startNotify()
                 }
-
             }
         }
         binding.customStatus.indicateButton.setOnClickListener {
@@ -198,25 +158,23 @@ class ConnectionDetailFragment : Fragment(), IStatusObserver {
                 val isIndicateActive = viewModel.isIndicateActive.value ?: false
                 if (isIndicateActive) {
                     Timber.v("stop Indicate")
-                    !conn.requestStopNotifyOrIndicate(CustomService.CUSTOM_SERVICE_1.uuid, CustomCharacteristic.INDICATE_CHARACTERISTIC.uuid)
+                    lowEnergyDevice?.stopIndicate()
                 } else {
                     Timber.v("start Indicate")
-                    conn.requestStartIndicate(CustomService.CUSTOM_SERVICE_1.uuid, CustomCharacteristic.INDICATE_CHARACTERISTIC.uuid)
-                }.let { isActive ->
-                    viewModel.isIndicateActive.postValue(isActive)
+                    lowEnergyDevice?.startIndicate()
                 }
             }
         }
         binding.customStatus.writeButton.setOnClickListener {
             val text = binding.customStatus.writeTextField.text.toString()
-            Timber.i("$macAddress: onClick: Write ${CustomService.CUSTOM_SERVICE_1}, ${CustomCharacteristic.WRITE_CHARACTERISTIC}, $text")
-            lowEnergyDevice?.requestWrite(CustomService.CUSTOM_SERVICE_1.uuid, CustomCharacteristic.WRITE_CHARACTERISTIC.uuid, text)
+            Timber.i("$macAddress: onClick: write $text")
+            lowEnergyDevice?.write(text)
             binding.customStatus.writeTextField.setText("")
         }
         binding.customStatus.writeNoResponseButton.setOnClickListener {
             val text = binding.customStatus.writeTextField.text.toString()
-            Timber.i("$macAddress: onClick: Write ${CustomService.CUSTOM_SERVICE_1}, ${CustomCharacteristic.WRITE_WO_RESPONSE_CHARACTERISTIC}, $text")
-            lowEnergyDevice?.requestWrite(CustomService.CUSTOM_SERVICE_1.uuid, CustomCharacteristic.WRITE_WO_RESPONSE_CHARACTERISTIC.uuid, text)
+            Timber.i("$macAddress: onClick: write without response $text")
+            lowEnergyDevice?.writeWithoutResponse(text)
             binding.customStatus.writeTextField.setText("")
         }
     }

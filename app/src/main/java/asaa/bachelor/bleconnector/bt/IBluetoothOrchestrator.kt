@@ -6,8 +6,6 @@ interface IBluetoothOrchestrator {
 
     fun startLowEnergyDiscovery()
     fun stopDiscovery()
-    fun connect(macAddress: String): BluetoothLowEnergyDevice?
-    fun disconnect(macAddress: String)
 
 }
 

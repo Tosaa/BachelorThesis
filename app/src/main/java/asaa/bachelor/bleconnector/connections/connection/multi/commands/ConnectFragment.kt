@@ -25,7 +25,7 @@ class ConnectFragment : SelectedConnectionCommandFragment() {
     ): View? {
         binding = ConnectFragmentBinding.inflate(inflater, container, false)
         binding.lifecycleOwner = viewLifecycleOwner
-        binding.connectButton.setOnClickListener { viewModel.connections.filterNotNull().filter { it.isSelected }.forEach { it.connect() } }
+        binding.connectButton.setOnClickListener { viewModel.connections.filterNotNull().filter { it.isSelected }.forEach { it.connect(requireContext()) } }
         binding.disconnectButton.setOnClickListener { viewModel.connections.filterNotNull().filter { it.isSelected }.forEach { it.disconnect() } }
         return binding.root
     }
