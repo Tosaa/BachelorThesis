@@ -219,7 +219,12 @@ class ESP32Device(device: BluetoothDevice) : BluetoothLowEnergyDevice(device) {
         when (characteristic) {
             characteristicWrite -> writeStatus = WriteStatus.DONE(value)
             characteristicWriteWithoutResponse -> writeWithoutResponseStatus = WriteStatus.DONE(value)
-            characteristicConnectionParameter -> latestInterval = characteristic?.value?.take(2)?.mapIndexed { index, byte -> byte.toUByte().toInt() + index * UByte.MAX_VALUE.toInt() }?.sum() ?: 0
+            characteristicConnectionParameter -> latestInterval = characteristic?.value?.take(2)?.mapIndexed { index, byte ->
+                if (index == 0)
+                    byte.toUByte().toInt()
+                else
+                    byte.toUByte().toInt() * index * 256
+            }?.sum() ?: 0
         }
     }
 
