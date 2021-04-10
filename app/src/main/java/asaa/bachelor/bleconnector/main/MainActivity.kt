@@ -16,9 +16,8 @@ import androidx.core.location.LocationManagerCompat
 import androidx.databinding.DataBindingUtil
 import androidx.navigation.fragment.NavHostFragment
 import asaa.bachelor.bleconnector.R
-import asaa.bachelor.bleconnector.bt.BluetoothOrchestrator
+import asaa.bachelor.bleconnector.bt.manager.BluetoothManager
 import asaa.bachelor.bleconnector.databinding.ActivityMainBinding
-import com.google.android.material.snackbar.Snackbar
 import dagger.hilt.android.AndroidEntryPoint
 import timber.log.Timber
 import javax.inject.Inject
@@ -31,7 +30,7 @@ class MainActivity : AppCompatActivity() {
     lateinit var sharedPreferences: SharedPreferences
 
     @Inject
-    lateinit var bluetoothOrchestrator: BluetoothOrchestrator
+    lateinit var bluetoothManager: BluetoothManager
 
     override fun onCreate(savedInstanceState: Bundle?) {
 
@@ -86,7 +85,7 @@ class MainActivity : AppCompatActivity() {
                     Timber.i("found new Bt Device: ${device?.name} , ${device?.address}")
 
                     device?.let {
-                        bluetoothOrchestrator.addBluetoothDevice(it)
+                        bluetoothManager.addBluetoothDevice(it)
                     }
                     Handler(Looper.getMainLooper()).run {
                         Toast.makeText(context, "Found BT Device: ${device?.address}", Toast.LENGTH_SHORT).show()
@@ -115,7 +114,6 @@ class MainActivity : AppCompatActivity() {
     override fun onDestroy() {
         super.onDestroy()
         (application as ExampleApplication).saveLogs()
-        bluetoothOrchestrator.disconnectAll()
     }
 
 

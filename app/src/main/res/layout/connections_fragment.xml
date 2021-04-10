@@ -72,13 +72,6 @@
             android:orientation="horizontal">
 
             <com.google.android.material.button.MaterialButton
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_margin="5dp"
-                android:onClick="@{()->viewmodel.closeAll()}"
-                android:text="close\nall" />
-
-            <com.google.android.material.button.MaterialButton
                 android:id="@+id/simultan_esp_actions"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"

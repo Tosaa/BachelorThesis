@@ -6,7 +6,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
-import asaa.bachelor.bleconnector.bt.BluetoothOrchestrator
+import asaa.bachelor.bleconnector.bt.manager.BluetoothManager
 import asaa.bachelor.bleconnector.databinding.SimultanConnectionsFragmentBinding
 import com.google.android.material.tabs.TabLayoutMediator
 import dagger.hilt.android.AndroidEntryPoint
@@ -17,7 +17,7 @@ import javax.inject.Inject
 class SimultanConnectionFragment : Fragment() {
 
     @Inject
-    lateinit var bluetoothOrchestrator: BluetoothOrchestrator
+    lateinit var bluetoothManager: BluetoothManager
     val viewModel: SimultanConnectionViewModel by activityViewModels()
     lateinit var binding: SimultanConnectionsFragmentBinding
     private lateinit var adapter: CommandsAdapter
@@ -38,6 +38,7 @@ class SimultanConnectionFragment : Fragment() {
 
     override fun onResume() {
         super.onResume()
+        viewModel.updateConnections()
         Timber.v("onResume")
     }
 

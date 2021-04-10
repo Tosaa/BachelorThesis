@@ -1,20 +1,24 @@
 package asaa.bachelor.bleconnector.connections
 
-import android.bluetooth.BluetoothDevice
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.navigation.NavController
 import androidx.recyclerview.widget.RecyclerView
-import asaa.bachelor.bleconnector.bt.*
+import asaa.bachelor.bleconnector.bt.BondState
+import asaa.bachelor.bleconnector.bt.ConnectionStatus
+import asaa.bachelor.bleconnector.bt.DeviceType
+import asaa.bachelor.bleconnector.bt.custom.CustomBluetoothDevice
+import asaa.bachelor.bleconnector.bt.custom.classic.CustomClassicDevice
+import asaa.bachelor.bleconnector.bt.custom.le.BluetoothLowEnergyDevice
+import asaa.bachelor.bleconnector.bt.manager.BluetoothManager
 import asaa.bachelor.bleconnector.databinding.BluetoothDeviceItemBinding
 import timber.log.Timber
 
 private const val TAG = "BluetoothDeviceAdapter"
 
 class BluetoothDeviceAdapter(
-    private val bluetoothOrchestrator: BluetoothOrchestrator,
+    private val bluetoothManager: BluetoothManager,
     private val navController: NavController
 ) :
     RecyclerView.Adapter<DeviceViewHolder>() {
@@ -34,12 +38,17 @@ class BluetoothDeviceAdapter(
     override fun onBindViewHolder(holder: DeviceViewHolder, position: Int) {
         btDevices[position].let { bluetoothDevice ->
             val device = bluetoothDevice.device
-            val deviceAddress = device.address
+            val deviceAddress = device.deviceTag
+            val deviceType = when {
+                device is BluetoothLowEnergyDevice -> "LE"
+                device is CustomClassicDevice -> "Classic"
+                else -> DeviceType.get(device.device.type)?.name ?: "Unknown"
+            }
             holder.bind(
                 deviceAddress,
-                device.name ?: "UNKNOWN DEVICENAME",
-                BondState.get(device.bondState)?.toString() ?: "UNKNOWN BONDSTATE",
-                DeviceType.get(device.type)?.toString() ?: "UNKNOWN DEVICETYPE",
+                device.device.name ?: "UNKNOWN DEVICENAME",
+                BondState.get(device.device.bondState)?.toString() ?: "UNKNOWN BONDSTATE",
+                deviceType,
                 position == expandedItem,
                 bluetoothDevice.isConnected
             )
@@ -74,14 +83,21 @@ class BluetoothDeviceAdapter(
         return btDevices.size
     }
 
-    fun updateDevices(newBtDevices: List<BluetoothDevice>) {
+    fun updateDevices(newBtDevices: List<CustomBluetoothDevice>) {
         btDevices.clear()
-        btDevices.addAll(newBtDevices.map { BluetoothDeviceWithState(it, bluetoothOrchestrator.connectionFor(it.address)?.connectionStatus.let { it == ConnectionStatus.CONNECTED }) })
+        btDevices.addAll(
+            newBtDevices
+                .map { device ->
+                    BluetoothDeviceWithState(
+                        device,
+                        device.connectionStatus == ConnectionStatus.CONNECTED
+                    )
+                })
         Timber.v("update all Bluetooth Devices in Adapter: $btDevices")
         notifyDataSetChanged()
     }
 
-    data class BluetoothDeviceWithState(val device: BluetoothDevice, val isConnected: Boolean)
+    data class BluetoothDeviceWithState(val device: CustomBluetoothDevice, val isConnected: Boolean)
 }
 
 class DeviceViewHolder(private val binding: BluetoothDeviceItemBinding) :

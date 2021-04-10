@@ -1,53 +1,49 @@
-package asaa.bachelor.bleconnector.connections.connection.classic
+package asaa.bachelor.bleconnector.bt.custom.classic
 
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothSocket
-import asaa.bachelor.bleconnector.bt.IStatusObserver
+import asaa.bachelor.bleconnector.bt.ConnectionStatus
+import asaa.bachelor.bleconnector.bt.custom.CustomBluetoothDevice
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import timber.log.Timber
-import java.io.ByteArrayInputStream
+import java.io.BufferedReader
 import java.io.InputStreamReader
-import java.nio.CharBuffer
+import java.util.*
 
-class ClassicDataExchangeService(private val device: BluetoothDevice) {
+abstract class BluetoothClassicDevice(device: BluetoothDevice) : CustomBluetoothDevice(device) {
 
-    val UUID = java.util.UUID.fromString("00001101-0000-1000-8000-00805F9B34FB")
-    val name = "BluetoothConnectionTest"
+    abstract val uuid: UUID
+    abstract val name: String
 
     val btAdapter = BluetoothAdapter.getDefaultAdapter()
     var blSocket: BluetoothSocket? = null
-    private var connectionState = ConnectionState.DISCONNECTED
+    private var connectionState: ConnectionStatus = ConnectionStatus.DISCONNECTED("")
         set(value) {
             if (field != value) {
-                Timber.i("Connection Status of ${device.address} changed $field -> $value")
+                Timber.i("$deviceTag Connection Status changed $field -> $value")
                 field = value
                 notifyConnectionStateChanged(field)
             }
         }
 
-    // ConnectionState
-    enum class ConnectionState {
-        DISCONNECTED, CONNECTING, CONNECTED;
-    }
-
     // observer
     val observers: MutableList<ConnectionStateObserver> = mutableListOf()
 
     fun addObserver(o: ConnectionStateObserver) {
-        Timber.d("${device.address}: add Observer: $o")
+        Timber.d("$deviceTag: add Observer: $o")
         observers.add(o)
         o.onConnectionStateChanged(connectionState)
     }
 
     fun removeObserver(o: ConnectionStateObserver) {
-        Timber.d("${device.address}: remove Observer: $o")
+        Timber.d("$deviceTag: remove Observer: $o")
         observers.remove(o)
     }
 
-    private fun notifyConnectionStateChanged(status: ClassicDataExchangeService.ConnectionState) {
+    private fun notifyConnectionStateChanged(status: ConnectionStatus) {
         observers.forEach {
             it.onConnectionStateChanged(status)
         }
@@ -68,47 +64,56 @@ class ClassicDataExchangeService(private val device: BluetoothDevice) {
     // Connect
     // Disconnect
     // listener -> on Connection Changed
+    fun disconnect(){
+        btAdapter.cancelDiscovery()
+        connectionState = ConnectionStatus.DISCONNECTED("End By User")
+    }
 
     fun connect(coroutineScope: CoroutineScope) {
+        btAdapter.cancelDiscovery()
+        if(connectionState == ConnectionStatus.CONNECTING){
+            connectionState = ConnectionStatus.DISCONNECTED("End by connect while being connected")
+        }
         coroutineScope.launch(Dispatchers.IO) {
-            connectionState = ConnectionState.CONNECTING
-            btAdapter.cancelDiscovery()
-            Timber.d("Try to create InsecureRfcommSocketToServiceRecord")
+            connectionState = ConnectionStatus.CONNECTING
+            Timber.d("$deviceTag Try to create InsecureRfcommSocketToServiceRecord")
             connectionState = try {
 
-                blSocket = device.createInsecureRfcommSocketToServiceRecord(UUID)
+                blSocket = device.createInsecureRfcommSocketToServiceRecord(uuid)
                 blSocket?.let {
                     it.connect()
                 }
-                ConnectionState.CONNECTED
+                ConnectionStatus.CONNECTED
             } catch (e: Exception) {
-                Timber.w("exception while connecting: $e")
-                ConnectionState.DISCONNECTED
+                Timber.w("$deviceTag exception while connecting: $e")
+                ConnectionStatus.DISCONNECTED(e.toString())
             }
 
 
 
-            while (connectionState == ConnectionState.CONNECTED) {
-                val text = CharArray(10)
+            while (connectionState == ConnectionStatus.CONNECTED) {
+                val text = CharArray(255)
+                val reader = BufferedReader(InputStreamReader(blSocket?.inputStream))
                 try {
-                    InputStreamReader(blSocket?.inputStream).read(text, 0, 10)
-                    if (text.isNotEmpty()) {
-                        notifyOnRead(text.map { it.toByte() }.toByteArray())
+                    val received = reader.readLine()
+                    if (received.isNotEmpty()) {
+                        notifyOnRead(received.map { it.toByte() }.toByteArray())
                     }
                 } catch (e: Exception) {
-                    Timber.w("exception while connected: $e")
-                    connectionState = ConnectionState.DISCONNECTED
+                    Timber.w("$deviceTag exception while connected: $e")
+                    connectionState = ConnectionStatus.DISCONNECTED(e.toString())
                 }
             }
         }
     }
 
+    // Todo: remove
     fun read(coroutineScope: CoroutineScope) {
         coroutineScope.launch(Dispatchers.IO) {
             if (blSocket != null)
                 Timber.v(blSocket?.inputStream?.readBytes().toString())
             else
-                Timber.w("write: Bluetooth Socket was null")
+                Timber.w("$deviceTag write: Bluetooth Socket was null")
         }
     }
 
@@ -118,12 +123,12 @@ class ClassicDataExchangeService(private val device: BluetoothDevice) {
                 blSocket?.outputStream?.write(string.toByteArray())
                 notifyOnWrite(string.toByteArray())
             } else
-                Timber.w("write: Bluetooth Socket was null")
+                Timber.w("$deviceTag write: Bluetooth Socket was null")
         }
     }
 
     interface ConnectionStateObserver {
-        fun onConnectionStateChanged(connectionStatus: ClassicDataExchangeService.ConnectionState)
+        fun onConnectionStateChanged(connectionStatus: ConnectionStatus)
         fun onWrite(bytes: ByteArray)
         fun onRead(bytes: ByteArray)
     }
