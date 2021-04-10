@@ -4,6 +4,7 @@ import android.bluetooth.*
 import android.content.Context
 import android.os.Handler
 import android.os.Looper
+import androidx.annotation.RequiresPermission
 import asaa.bachelor.bleconnector.bt.*
 import asaa.bachelor.bleconnector.bt.common.CommonDescriptors
 import asaa.bachelor.bleconnector.bt.custom.CustomBluetoothDevice
@@ -15,7 +16,7 @@ abstract class BluetoothLowEnergyDevice(device: BluetoothDevice) : CustomBluetoo
     private var bluetoothGatt: BluetoothGatt? = null
 
     // callback will trigger all observers and change state values
-    private val callback = BluetoothCallback()
+    internal var callback = BluetoothCallback()
 
     // States
     override var connectionStatus: ConnectionStatus = ConnectionStatus.DISCONNECTED("")
@@ -100,10 +101,11 @@ abstract class BluetoothLowEnergyDevice(device: BluetoothDevice) : CustomBluetoo
     }
 
 
-    internal fun writeCharacteristic(gattCharacteristic: BluetoothGattCharacteristic, writeType: Int, value: ByteArray): Boolean {
+    internal fun writeCharacteristic(gattCharacteristic: BluetoothGattCharacteristic, writeType: Int = -1, value: ByteArray): Boolean {
         Timber.d("$deviceTag: writeCharacteristic: $gattCharacteristic, $writeType, $value")
         bluetoothGatt?.let { gatt ->
-            gattCharacteristic.writeType = writeType
+            if (writeType > -1)
+                gattCharacteristic.writeType = writeType
             gattCharacteristic.value = value
             gatt.writeCharacteristic(gattCharacteristic)
             return true
@@ -229,15 +231,27 @@ abstract class BluetoothLowEnergyDevice(device: BluetoothDevice) : CustomBluetoo
 
     open fun initializeCharacteristics() {}
 
-    abstract fun onReadResult(characteristic: BluetoothGattCharacteristic?)
-    abstract fun onWriteResult(characteristic: BluetoothGattCharacteristic?)
-    abstract fun onCharacteristicChangedResult(characteristic: BluetoothGattCharacteristic?)
-    abstract fun onNoitificationChangedResult(characteristic: BluetoothGattCharacteristic?, notificationStatus: NotificationStatus)
+    internal open fun onReadResult(characteristic: BluetoothGattCharacteristic?) {}
+    internal open fun onWriteResult(characteristic: BluetoothGattCharacteristic?) {}
+    internal open fun onCharacteristicChangedResult(characteristic: BluetoothGattCharacteristic?) {}
+    internal open fun onNotificationChangedResult(characteristic: BluetoothGattCharacteristic?, notificationStatus: NotificationStatus) {}
+    internal open fun onPhyUpdated(txPhy: Int) {}
+    internal open fun onMtuUpdated(mtu: Int) {}
 
     inner class BluetoothCallback : LogableBluetoothGattCallback() {
 
         init {
             Timber.d("$deviceTag: Create new BluetoothGattCallback for this connection")
+        }
+
+        override fun onPhyUpdate(gatt: BluetoothGatt?, txPhy: Int, rxPhy: Int, status: Int) {
+            super.onPhyUpdate(gatt, txPhy, rxPhy, status)
+            onPhyUpdated(txPhy)
+        }
+
+        override fun onMtuChanged(gatt: BluetoothGatt?, mtu: Int, status: Int) {
+            super.onMtuChanged(gatt, mtu, status)
+            onMtuUpdated(mtu)
         }
 
         override fun onDescriptorRead(gatt: BluetoothGatt?, descriptor: BluetoothGattDescriptor?, status: Int) {
@@ -252,7 +266,7 @@ abstract class BluetoothLowEnergyDevice(device: BluetoothDevice) : CustomBluetoo
                 else -> false
             }
             if (BluetoothGattStatus.get(status) == BluetoothGattStatus.GATT_SUCCESS) {
-                onNoitificationChangedResult(descriptor?.characteristic, NotificationStatus.DONE(isActive))
+                onNotificationChangedResult(descriptor?.characteristic, NotificationStatus.DONE(isActive))
             }
             Timber.d("$deviceTag: onDescriptorWrite: $gatt, ${BluetoothGattStatus.get(status)}")
         }
@@ -374,6 +388,19 @@ sealed class NotificationStatus {
 sealed class WriteStatus {
     object STARTED : WriteStatus()
     object PENDING : WriteStatus()
-    class DONE(val writtenValue: String) : WriteStatus()
-    class FAILED(val info: String = "") : WriteStatus()
+    data class DONE(val writtenValue: String) : WriteStatus() {
+        override fun toString(): String {
+            return "${super.toString()}($writtenValue)"
+        }
+    }
+
+    data class FAILED(val info: String = "") : WriteStatus() {
+        override fun toString(): String {
+            return "${super.toString()}($info)"
+        }
+    }
+
+    override fun toString(): String {
+        return this.javaClass.simpleName
+    }
 }

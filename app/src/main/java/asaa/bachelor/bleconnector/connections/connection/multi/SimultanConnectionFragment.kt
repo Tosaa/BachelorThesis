@@ -38,6 +38,7 @@ class SimultanConnectionFragment : Fragment() {
 
     override fun onResume() {
         super.onResume()
+        viewModel.updateConnections()
         Timber.v("onResume")
     }
 

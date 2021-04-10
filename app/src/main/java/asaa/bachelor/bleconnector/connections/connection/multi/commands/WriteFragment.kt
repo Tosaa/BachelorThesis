@@ -26,6 +26,26 @@ class WriteFragment : SelectedConnectionCommandFragment() {
     ): View? {
         binding = WriteFragmentBinding.inflate(inflater, container, false)
         binding.lifecycleOwner = viewLifecycleOwner
+
+        setupBindings()
+
         return binding.root
+    }
+
+    private fun setupBindings() {
+        binding.writeButton.setOnClickListener {
+            val text = binding.writeTextField.text.toString()
+            viewModel.connections.forEach {
+                it?.write(text)
+            }
+            binding.writeTextField.setText("")
+        }
+        binding.writeWithoutResponseButton.setOnClickListener {
+            val text = binding.writeTextField.text.toString()
+            viewModel.connections.forEach {
+                it?.write(text, true)
+            }
+            binding.writeTextField.setText("")
+        }
     }
 }

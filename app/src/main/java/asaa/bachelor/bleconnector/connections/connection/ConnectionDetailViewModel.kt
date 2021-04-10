@@ -97,7 +97,4 @@ class ConnectionDetailViewModel @Inject constructor(val bluetoothManager: Blueto
         customIndicateValue.postValue(newValue)
     }
 
-    override fun connectionPropertyChanged() {
-        TODO("Not yet implemented")
-    }
 }

@@ -2,6 +2,8 @@ package asaa.bachelor.bleconnector.bt.custom.le
 
 import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothGattCharacteristic
+import timber.log.Timber
+import java.nio.ByteBuffer
 
 class ESP32Device(device: BluetoothDevice) : BluetoothLowEnergyDevice(device) {
 
@@ -57,7 +59,22 @@ class ESP32Device(device: BluetoothDevice) : BluetoothLowEnergyDevice(device) {
             observer.forEach { it.indicateValueChanged(value) }
             field = value
         }
-    var connectionParameter = ""
+
+    private var latestMtu = 23
+        set(value) {
+            field = value
+            observer.forEach { it.connectionPropertyChanged(latestMtu, latestInterval, latestPhy) }
+        }
+    private var latestInterval = 0
+        set(value) {
+            field = value
+            observer.forEach { it.connectionPropertyChanged(latestMtu, latestInterval, latestPhy) }
+        }
+    private var latestPhy = 0
+        set(value) {
+            field = value
+            observer.forEach { it.connectionPropertyChanged(latestMtu, latestInterval, latestPhy) }
+        }
 
     override fun initializeCharacteristics() {
         super.initializeCharacteristics()
@@ -169,6 +186,15 @@ class ESP32Device(device: BluetoothDevice) : BluetoothLowEnergyDevice(device) {
     }
 
     fun changeConnectionParameter(interval: Int) {
+        characteristicConnectionParameter.let { characteristic ->
+            if (characteristic == null) {
+                return
+            }
+
+            val byteArray = ByteBuffer.allocate(4).putInt(interval).array().reversedArray()
+            Timber.i("update connection params to: ${byteArray.toUByteArray().joinToString()} ")
+            writeCharacteristic(characteristic, value = byteArray)
+        }
 
     }
 
@@ -193,14 +219,25 @@ class ESP32Device(device: BluetoothDevice) : BluetoothLowEnergyDevice(device) {
         when (characteristic) {
             characteristicWrite -> writeStatus = WriteStatus.DONE(value)
             characteristicWriteWithoutResponse -> writeWithoutResponseStatus = WriteStatus.DONE(value)
+            characteristicConnectionParameter -> latestInterval = characteristic?.value?.take(2)?.mapIndexed { index, byte -> byte.toUByte().toInt() + index * UByte.MAX_VALUE.toInt() }?.sum() ?: 0
         }
     }
 
-    override fun onNoitificationChangedResult(characteristic: BluetoothGattCharacteristic?, notificationStatus: NotificationStatus) {
+    override fun onNotificationChangedResult(characteristic: BluetoothGattCharacteristic?, notificationStatus: NotificationStatus) {
         when (characteristic) {
             characteristicNotify -> notifyStatus = notificationStatus
             characteristicIndicate -> indicateStatus = notificationStatus
         }
+    }
+
+    override fun onPhyUpdated(txPhy: Int) {
+        super.onPhyUpdated(txPhy)
+        latestPhy = txPhy
+    }
+
+    override fun onMtuUpdated(mtu: Int) {
+        super.onMtuUpdated(mtu)
+        latestMtu = mtu
     }
 
     companion object {
@@ -219,15 +256,15 @@ class ESP32Device(device: BluetoothDevice) : BluetoothLowEnergyDevice(device) {
 
 interface ESP32DeviceObserver {
 
-    fun onCharacteristic1Changed(newValue: String)
-    fun onCharacteristic2Changed(newValue: String)
+    fun onCharacteristic1Changed(newValue: String) {}
+    fun onCharacteristic2Changed(newValue: String) {}
 
-    fun writeCommandStatusChanged(writeStatus: WriteStatus)
-    fun notifyStatusChanged(notificationStatus: NotificationStatus)
-    fun notifyValueChanged(newValue: String)
-    fun indicateStatusChanged(notificationStatus: NotificationStatus)
-    fun indicateValueChanged(newValue: String)
-    fun connectionPropertyChanged()
+    fun writeCommandStatusChanged(writeStatus: WriteStatus) {}
+    fun notifyStatusChanged(notificationStatus: NotificationStatus) {}
+    fun notifyValueChanged(newValue: String) {}
+    fun indicateStatusChanged(notificationStatus: NotificationStatus) {}
+    fun indicateValueChanged(newValue: String) {}
+    fun connectionPropertyChanged(mtu: Int, connectionInterval: Int, phy: Int) {}
 
 
 }
