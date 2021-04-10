@@ -32,8 +32,4 @@ class ConnectionsViewModel @Inject constructor(private val btManager: BluetoothM
         btDevicesSize.postValue(btManager.btDevices.size)
     }
 
-    fun closeAll() {
-
-    }
-
 }

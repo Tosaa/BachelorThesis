@@ -3,6 +3,8 @@
 
     <data>
 
+        <import type="android.view.View" />
+
         <variable
             name="viewmodel"
             type="asaa.bachelor.bleconnector.connections.connection.multi.SimultanConnectionViewModel" />
@@ -11,73 +13,92 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:orientation="vertical">
+        android:orientation="vertical"
+        android:padding="@dimen/button_default_margin">
 
         <com.google.android.material.checkbox.MaterialCheckBox
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_margin="5dp"
             android:background="#ffffff"
             android:backgroundTint="@{viewmodel.firstConnection.isReady  ?  @color/colorActive :@color/colorInactive}"
             android:checked="@{viewmodel.firstConnection.selected}"
             android:onClick="@{()->viewmodel.firstConnection.toggle()}"
-            android:text="@{viewmodel.firstConnection.address}" />
+            android:text="@{viewmodel.firstConnection.address}"
+            android:visibility="@{(viewmodel.firstConnection.connection == null) ? View.GONE : View.VISIBLE}" />
 
         <com.google.android.material.textview.MaterialTextView
             style="@style/AppTheme.TextView.Content"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@{viewmodel.firstConnection.timeKeeper.commands()}" />
+            android:layout_margin="@dimen/deep_padding"
+            android:drawableLeft="@drawable/log"
+            android:text="@{viewmodel.firstConnection.timeKeeper.commands()}"
+            android:visibility="@{(viewmodel.firstConnection.connection == null) ? View.GONE : View.VISIBLE}" />
 
         <com.google.android.material.textview.MaterialTextView
             style="@style/AppTheme.TextView.Content"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@{viewmodel.firstConnection.timeKeeper.duration()}" />
+            android:layout_margin="@dimen/deep_padding"
+            android:drawableLeft="@drawable/clock"
+            android:text="@{viewmodel.firstConnection.timeKeeper.duration()}"
+            android:visibility="@{(viewmodel.firstConnection.connection == null) ? View.GONE : View.VISIBLE}" />
 
         <com.google.android.material.checkbox.MaterialCheckBox
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_margin="5dp"
             android:background="#ffffff"
             android:backgroundTint="@{viewmodel.secondConnection.isReady  ?  @color/colorActive :@color/colorInactive}"
             android:checked="@{viewmodel.secondConnection.selected}"
             android:onClick="@{()->viewmodel.secondConnection.toggle()}"
-            android:text="@{viewmodel.secondConnection.address}" />
+            android:text="@{viewmodel.secondConnection.address}"
+            android:visibility="@{(viewmodel.secondConnection.connection == null) ? View.GONE : View.VISIBLE}" />
 
         <com.google.android.material.textview.MaterialTextView
             style="@style/AppTheme.TextView.Content"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@{viewmodel.secondConnection.timeKeeper.commands()}" />
+            android:layout_margin="@dimen/deep_padding"
+            android:drawableLeft="@drawable/log"
+            android:text="@{viewmodel.secondConnection.timeKeeper.commands()}"
+            android:visibility="@{(viewmodel.secondConnection.connection == null) ? View.GONE : View.VISIBLE}" />
 
         <com.google.android.material.textview.MaterialTextView
             style="@style/AppTheme.TextView.Content"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@{viewmodel.secondConnection.timeKeeper.duration()}" />
+            android:layout_margin="@dimen/deep_padding"
+            android:drawableLeft="@drawable/clock"
+            android:text="@{viewmodel.secondConnection.timeKeeper.duration()}"
+            android:visibility="@{(viewmodel.secondConnection.connection == null) ? View.GONE : View.VISIBLE}" />
 
         <com.google.android.material.checkbox.MaterialCheckBox
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_margin="5dp"
             android:background="#ffffff"
             android:backgroundTint="@{viewmodel.thirdConnection.isReady  ?  @color/colorActive :@color/colorInactive}"
             android:checked="@{viewmodel.thirdConnection.selected}"
             android:onClick="@{()->viewmodel.thirdConnection.toggle()}"
-            android:text="@{viewmodel.thirdConnection.address}" />
+            android:text="@{viewmodel.thirdConnection.address}"
+            android:visibility="@{(viewmodel.thirdConnection.connection == null) ? View.GONE : View.VISIBLE}" />
 
         <com.google.android.material.textview.MaterialTextView
             style="@style/AppTheme.TextView.Content"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@{viewmodel.thirdConnection.timeKeeper.commands()}" />
+            android:layout_margin="@dimen/deep_padding"
+            android:drawableLeft="@drawable/log"
+            android:text="@{viewmodel.thirdConnection.timeKeeper.commands()}"
+            android:visibility="@{(viewmodel.thirdConnection.connection == null) ? View.GONE : View.VISIBLE}" />
 
         <com.google.android.material.textview.MaterialTextView
             style="@style/AppTheme.TextView.Content"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@{viewmodel.thirdConnection.timeKeeper.duration()}" />
+            android:layout_margin="@dimen/deep_padding"
+            android:drawableLeft="@drawable/clock"
+            android:text="@{viewmodel.thirdConnection.timeKeeper.duration()}"
+            android:visibility="@{(viewmodel.thirdConnection.connection == null) ? View.GONE : View.VISIBLE}" />
 
         <com.google.android.material.tabs.TabLayout
             android:id="@+id/tab_layout"

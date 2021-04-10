@@ -9,9 +9,15 @@ import javax.inject.Inject
 class SimultanConnectionViewModel @Inject constructor(val bluetoothManager: BluetoothManager) :
     ViewModel() {
 
-    val firstConnection = ConnectionItem("24:0A:C4:60:E5:D2", bluetoothManager).asLiveData
-    val secondConnection = ConnectionItem("24:0A:C4:60:EF:3A", bluetoothManager).asLiveData
-    val thirdConnection = ConnectionItem("24:0A:C4:61:78:D2", bluetoothManager).asLiveData
-    val connections = listOf(firstConnection.value, secondConnection.value, thirdConnection.value)
+    var firstConnection = ConnectionItem("24:0A:C4:60:E5:D2", bluetoothManager).asLiveData
+    var secondConnection = ConnectionItem("24:0A:C4:60:EF:3A", bluetoothManager).asLiveData
+    var thirdConnection = ConnectionItem("24:0A:C4:61:78:D2", bluetoothManager).asLiveData
+    var connections = listOf(firstConnection.value, secondConnection.value, thirdConnection.value)
+
+    fun updateConnections(){
+        connections.forEach {
+            it?.refresh()
+        }
+    }
 
 }

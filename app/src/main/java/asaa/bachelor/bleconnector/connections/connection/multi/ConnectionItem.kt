@@ -1,14 +1,15 @@
 package asaa.bachelor.bleconnector.connections.connection.multi
 
-import android.bluetooth.BluetoothGattCharacteristic
+import android.content.Context
 import androidx.lifecycle.MutableLiveData
 import asaa.bachelor.bleconnector.bt.*
-import asaa.bachelor.bleconnector.bt.common.CustomCharacteristic
-import asaa.bachelor.bleconnector.bt.common.CustomService
+import asaa.bachelor.bleconnector.bt.custom.le.ESP32Device
+import asaa.bachelor.bleconnector.bt.custom.le.ESP32DeviceObserver
+import asaa.bachelor.bleconnector.bt.custom.le.WriteStatus
 import asaa.bachelor.bleconnector.bt.manager.BluetoothManager
 import timber.log.Timber
 
-data class ConnectionItem(val address: String, private val manager: BluetoothManager) : IStatusObserver {
+data class ConnectionItem(val address: String, private val manager: BluetoothManager) : DeviceStateObserver, ESP32DeviceObserver {
     var asLiveData = MutableLiveData(this)
 
     val timeKeeper = TimeKeeper()
@@ -24,7 +25,13 @@ data class ConnectionItem(val address: String, private val manager: BluetoothMan
             field = value
         }
 
-    var connection = manager.connectionFor(address)
+    var connection = manager.getCustomBluetoothDeviceFor(address) as ESP32Device?
+
+    fun refresh() {
+        if (connection == null) {
+            connection = manager.getCustomBluetoothDeviceFor(address) as ESP32Device?
+        }
+    }
 
     var isObserving = false
         set(value) {
@@ -32,13 +39,13 @@ data class ConnectionItem(val address: String, private val manager: BluetoothMan
             field = value
         }
 
-    fun connect() {
-        connection = manager.connectionFor(address)
+    fun connect(context: Context) {
         if (!isObserving) {
+            connection?.addGeneralObserver(this)
             connection?.addObserver(this)
             isObserving = true
         }
-        manager.connect(address)
+        connection?.connect(context, false)
         timeKeeper.start("connect")
     }
 
@@ -57,16 +64,11 @@ data class ConnectionItem(val address: String, private val manager: BluetoothMan
     }
 
     fun writeConnectionInterval(interval: String): Boolean {
-        val requestIsGood = if (isReady) {
+        if (isReady) {
             timeKeeper.start("write Interval:$interval")
-            connection?.requestWrite(CustomService.CUSTOM_SERVICE_1.uuid, CustomCharacteristic.CONNECTION_INTERVAL_CHARACTERISTIC.uuid, interval) ?: false
-        } else {
-            false
+            connection?.changeConnectionParameter(interval.toInt())
         }
-        if (!requestIsGood) {
-            timeKeeper.end("could not request new Connection Interval")
-        }
-        return requestIsGood
+        return false
     }
 
     fun disconnect() {
@@ -77,12 +79,7 @@ data class ConnectionItem(val address: String, private val manager: BluetoothMan
     fun readC1() {
         if (isReady) {
             timeKeeper.start("read1")
-            connection?.requestRead(CustomService.CUSTOM_SERVICE_1.uuid, CustomCharacteristic.READ_CHARACTERISTIC.uuid).let { response ->
-                Timber.i("$address read Characteristic 1: $response")
-                if (response == false) {
-                    timeKeeper.end("read1 not possible")
-                }
-            }
+            connection?.readCharacteristic1()
         } else
             Timber.w("read Characteristic 1 is not possible because $address is not ready")
     }
@@ -90,37 +87,19 @@ data class ConnectionItem(val address: String, private val manager: BluetoothMan
     fun readC2() {
         if (isReady) {
             timeKeeper.start("read2")
-            connection?.requestRead(CustomService.CUSTOM_SERVICE_1.uuid, CustomCharacteristic.READ_CHARACTERISTIC_2.uuid).let { response ->
-                Timber.i("$address read Characteristic 2: $response")
-                if (response == false) {
-                    timeKeeper.end("read2 not possible")
-                }
-            }
+            connection?.readCharacteristic2()
+
         } else
             Timber.w("read Characteristic 2 is not possible because $address is not ready")
     }
 
-    override fun onReadCharacteristic(characteristic: BluetoothGattCharacteristic, value: ByteArray) {
-        super.onReadCharacteristic(characteristic, value)
-        val received = if (value.size < 10) {
-            value.joinToString(separator = "") { it.toChar().toString() }
+    fun write(payload: String, withoutResponse: Boolean = false) {
+        if (withoutResponse) {
+            timeKeeper.start("write without Response $payload")
+            connection?.writeWithoutResponse(payload)
         } else {
-            value.take(7).joinToString(separator = "") { it.toChar().toString() }.plus("...")
-        }
-        Timber.i("readCharacteristic:${characteristic.uuid} = $received")
-        timeKeeper.end("read:$received")
-
-    }
-
-    override fun onWriteCharacteristic(characteristic: BluetoothGattCharacteristic, value: ByteArray, status: BluetoothGattStatus) {
-        super.onWriteCharacteristic(characteristic, value, status)
-        when (status) {
-            BluetoothGattStatus.GATT_SUCCESS -> {
-                timeKeeper.end("write: completed")
-            }
-            else -> {
-                timeKeeper.end(status.toString())
-            }
+            timeKeeper.start("write $payload")
+            connection?.write(payload)
         }
     }
 
@@ -141,6 +120,7 @@ data class ConnectionItem(val address: String, private val manager: BluetoothMan
                 timeKeeper.end("disconnected")
                 if (isObserving) {
                     isObserving = false
+                    connection?.removeGeneralObserver(this)
                     connection?.removeObserver(this)
                 }
             }
@@ -188,6 +168,26 @@ data class ConnectionItem(val address: String, private val manager: BluetoothMan
             commandsList.add(cmd)
             asLiveData.postValue(this@ConnectionItem)
         }
+    }
+
+    override fun onCharacteristic1Changed(newValue: String) {
+        timeKeeper.end(newValue)
+    }
+
+    override fun onCharacteristic2Changed(newValue: String) {
+        timeKeeper.end(newValue)
+    }
+
+    override fun writeCommandStatusChanged(writeStatus: WriteStatus) {
+        when (writeStatus) {
+            is WriteStatus.DONE, is WriteStatus.FAILED -> timeKeeper.end(writeStatus.toString())
+            else -> timeKeeper.log(writeStatus.toString())
+        }
+    }
+
+    override fun connectionPropertyChanged(mtu: Int, connectionInterval: Int, phy: Int) {
+        super.connectionPropertyChanged(mtu, connectionInterval, phy)
+        Timber.i("connection property changed: mtu: $mtu, conn-interval: $connectionInterval, phy: $phy")
     }
 }
 

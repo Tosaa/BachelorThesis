@@ -14,7 +14,6 @@ import asaa.bachelor.bleconnector.bt.ConnectionStatus
 import asaa.bachelor.bleconnector.bt.custom.classic.BluetoothClassicDevice
 import asaa.bachelor.bleconnector.bt.custom.classic.CustomClassicDevice
 import asaa.bachelor.bleconnector.bt.manager.BluetoothManager
-import asaa.bachelor.bleconnector.connections.connection.ConnectionDetailFragmentArgs
 import asaa.bachelor.bleconnector.databinding.ConnectionDetailClassicFragmentBinding
 import dagger.hilt.android.AndroidEntryPoint
 import timber.log.Timber
@@ -27,7 +26,7 @@ class ConnectionDetailClassicFragment : Fragment() {
     lateinit var bluetoothManager: BluetoothManager
     lateinit var binding: ConnectionDetailClassicFragmentBinding
     val viewModel: ConnectionDetailClassicViewModel by viewModels()
-    val args: ConnectionDetailFragmentArgs by navArgs()
+    val args: ConnectionDetailClassicFragmentArgs by navArgs()
 
     lateinit var macAddress: String
     private lateinit var btDevice: BluetoothDevice
@@ -56,7 +55,7 @@ class ConnectionDetailClassicFragment : Fragment() {
 
     private fun setupBinding() {
         binding.connectionState.stateButton.setOnClickListener {
-            if(viewModel.connectionState.value == ConnectionStatus.CONNECTED)
+            if (viewModel.connectionState.value == ConnectionStatus.CONNECTED)
                 stopConnection()
             else
                 startConnection()

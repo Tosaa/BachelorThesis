@@ -1,7 +1,10 @@
 package asaa.bachelor.bleconnector.bt.custom
 
 import android.bluetooth.BluetoothDevice
+import asaa.bachelor.bleconnector.bt.ConnectionStatus
 
-open class CustomBluetoothDevice(val device: BluetoothDevice) {
+abstract class CustomBluetoothDevice(val device: BluetoothDevice) {
     val deviceTag = device.address.toString()
+
+    abstract var connectionStatus: ConnectionStatus
 }

@@ -8,9 +8,10 @@ import android.bluetooth.le.ScanResult
 import android.bluetooth.le.ScanSettings
 import android.content.Context
 import android.os.Handler
-import asaa.bachelor.bleconnector.bt.custom.le.BluetoothLowEnergyDevice
-import asaa.bachelor.bleconnector.bt.ConnectionStatus
 import asaa.bachelor.bleconnector.bt.IBluetoothOrchestrator
+import asaa.bachelor.bleconnector.bt.custom.CustomBluetoothDevice
+import asaa.bachelor.bleconnector.bt.custom.classic.CustomClassicDevice
+import asaa.bachelor.bleconnector.bt.custom.le.ESP32Device
 import dagger.hilt.android.qualifiers.ApplicationContext
 import timber.log.Timber
 import javax.inject.Inject
@@ -21,30 +22,29 @@ class BluetoothManager @Inject constructor(@ApplicationContext val context: Cont
     IBluetoothOrchestrator {
 
     init {
-        Timber.v("bluetooth Orchestrator created")
+        Timber.v("BluetoothManager created")
     }
 
     private val btAdapter = BluetoothAdapter.getDefaultAdapter()
 
     val btDevices: MutableList<BluetoothDevice> = mutableListOf()
+    val customBluetoothDevices = mutableListOf<CustomBluetoothDevice>()
 
     private val handler = Handler(context.mainLooper)
 
-    private val btDeviceLowEnergyDeviceMap: MutableMap<BluetoothDevice, BluetoothLowEnergyDevice> =
-        mutableMapOf()
-
-    private fun resolveBTDevice(macAddress: String): BluetoothDevice? = btDevices.find { it.address == macAddress }
-    private fun resolveBTConnection(macAddress: String): BluetoothLowEnergyDevice? {
-        return resolveBTDevice(macAddress)?.let {
-            btDeviceLowEnergyDeviceMap[it]
+    private fun addDeviceToList(bluetoothDevice: BluetoothDevice) {
+        if (!btDevices.contains(bluetoothDevice)) {
+            notifyDiscoveryFound(bluetoothDevice)
+            btDevices.add(bluetoothDevice)
+            when (bluetoothDevice.type) {
+                BluetoothDevice.DEVICE_TYPE_LE -> customBluetoothDevices.add(ESP32Device(bluetoothDevice))
+                BluetoothDevice.DEVICE_TYPE_CLASSIC -> customBluetoothDevices.add(CustomClassicDevice(bluetoothDevice))
+            }
         }
     }
 
-    private fun addDeviceToList(bluetoothDevice: BluetoothDevice) {
-        if (!btDevices.contains(bluetoothDevice)) {
-            notifyDiscoveryStarted(bluetoothDevice)
-            btDevices.add(bluetoothDevice)
-        }
+    fun getCustomBluetoothDeviceFor(macAddress: String): CustomBluetoothDevice? {
+        return customBluetoothDevices.find { it.device.address == macAddress }
     }
 
     // Callback
@@ -111,7 +111,7 @@ class BluetoothManager @Inject constructor(@ApplicationContext val context: Cont
             Timber.i("Start Discovering Classic Devices")
             notifyDiscoveryStarted()
             btAdapter.startDiscovery()
-            isScanning=true
+            isScanning = true
         } else {
             Timber.w("Start Discovering classic Devices was called while Scanning")
         }
@@ -119,59 +119,6 @@ class BluetoothManager @Inject constructor(@ApplicationContext val context: Cont
 
     fun addBluetoothDevice(btDevice: BluetoothDevice) {
         addDeviceToList(btDevice)
-    }
-
-    // TODO: To be removed
-    override fun connect(macAddress: String): BluetoothLowEnergyDevice? {
-        Timber.v("request connection for: $macAddress")
-        val device = resolveBTDevice(macAddress)
-        if (device == null) {
-            Timber.v("No Device for address: $macAddress")
-            return null
-        }
-        if (btDeviceLowEnergyDeviceMap[device] == null) {
-            Timber.v("create new BluetoothConnection for: $macAddress")
-            btDeviceLowEnergyDeviceMap[device] = BluetoothLowEnergyDevice(device)
-        }
-        Timber.v("connect BluetoothDevice: $macAddress")
-        btDeviceLowEnergyDeviceMap[device]?.connect(context, false)
-
-        return btDeviceLowEnergyDeviceMap[device]
-    }
-
-    // Todo: To be changed to connectionFor(bluetoothDevice: BluetoothDevice):BluetoothConnection
-    fun connectionFor(macAddress: String): BluetoothLowEnergyDevice? {
-        btDevices.find { it.address == macAddress }?.let {
-            if (it.type == BluetoothDevice.DEVICE_TYPE_UNKNOWN || it.type == BluetoothDevice.DEVICE_TYPE_CLASSIC) {
-                Timber.v("try to get Connection for non ble device: ${it.address}")
-                return null
-            }
-            if (btDeviceLowEnergyDeviceMap[it] == null) {
-                btDeviceLowEnergyDeviceMap[it] = BluetoothLowEnergyDevice(it)
-            }
-            return btDeviceLowEnergyDeviceMap[it]
-        } ?: return null
-    }
-
-    // Todo: To be removed
-    override fun disconnect(macAddress: String) {
-        Timber.v("disconnect: $macAddress")
-        val connection = resolveBTConnection(macAddress)
-        if (connection == null || connection.connectionStatus != ConnectionStatus.CONNECTED) {
-            Timber.v("questionable disconnect call for connection: $connection")
-            return
-        }
-        connection.disconnect()
-    }
-
-    // Todo: to be removed
-    fun disconnectAll() {
-        btDeviceLowEnergyDeviceMap.forEach { (device, connection) ->
-            if (connection.connectionStatus == ConnectionStatus.CONNECTED) {
-                Timber.v("disconnect: ${device.address}")
-                connection.disconnect()
-            }
-        }
     }
 
     private val observer = mutableListOf<BluetoothManagerListener>()
@@ -196,7 +143,7 @@ class BluetoothManager @Inject constructor(@ApplicationContext val context: Cont
         }
     }
 
-    fun notifyDiscoveryStarted(bluetoothDevice: BluetoothDevice) {
+    fun notifyDiscoveryFound(bluetoothDevice: BluetoothDevice) {
         observer.forEach {
             it.onDeviceAdded(bluetoothDevice)
         }

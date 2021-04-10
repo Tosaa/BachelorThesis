@@ -89,27 +89,6 @@
             android:background="@android:color/darker_gray" />
 
         <include
-            android:id="@+id/battery_status"
-            layout="@layout/characteristic_operation_item"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_margin="@dimen/deep_padding"
-            android:visibility="@{viewmodel.containsBatteryService ? View.VISIBLE : View.GONE}"
-            app:indicateEnabled="@{false}"
-            app:indicateValue="@{viewmodel.batteryValue.toString()}"
-            app:notifyEnabled="@{false}"
-            app:notifyValue="@{viewmodel.batteryValue.toString()}"
-            app:readEnabled="@{true}"
-            app:readValue="@{viewmodel.batteryValue.toString()}"
-            app:title="@{@string/battery_state}"
-            app:writeEnabled="@{false}" />
-
-        <View
-            android:layout_width="match_parent"
-            android:layout_height="1dp"
-            android:background="@android:color/darker_gray" />
-
-        <include
             android:id="@+id/custom_status"
             layout="@layout/characteristic_operation_item"
             android:layout_width="match_parent"

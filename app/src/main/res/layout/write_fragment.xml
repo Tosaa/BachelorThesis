@@ -14,7 +14,7 @@
             android:orientation="horizontal">
 
             <com.google.android.material.button.MaterialButton
-                android:id="@+id/connect_button"
+                android:id="@+id/write_button"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_margin="@dimen/button_default_margin"
@@ -23,7 +23,7 @@
                 android:text="WRITE 1" />
 
             <com.google.android.material.button.MaterialButton
-                android:id="@+id/disconnect_button"
+                android:id="@+id/write_without_response_button"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_margin="@dimen/button_default_margin"
@@ -31,28 +31,16 @@
                 android:text="WRITE 2" />
         </LinearLayout>
 
-        <LinearLayout
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/write_text_field"
+            style="@style/AppTheme.TextView.SubTitle"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal">
-
-            <com.google.android.material.textfield.TextInputEditText
-                style="@style/AppTheme.TextView.SubTitle"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_margin="@dimen/button_default_margin"
-                android:layout_weight="1"
-                android:text="nothing" />
-
-            <com.google.android.material.textfield.TextInputEditText
-                style="@style/AppTheme.TextView.SubTitle"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_margin="@dimen/button_default_margin"
-                android:layout_weight="1"
-                android:text="nothing" />
-
-        </LinearLayout>
+            android:layout_margin="@dimen/button_default_margin"
+            android:maxLines="2"
+            android:text="nothing"
+            android:textAlignment="center" />
 
     </LinearLayout>
 </layout>
