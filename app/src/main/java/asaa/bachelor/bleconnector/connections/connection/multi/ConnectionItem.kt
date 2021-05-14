@@ -31,6 +31,9 @@ data class ConnectionItem(val address: String, private val manager: BluetoothMan
         if (connection == null) {
             connection = manager.getCustomBluetoothDeviceFor(address) as ESP32Device?
         }
+        if (connection != null){
+            asLiveData.postValue(this)
+        }
     }
 
     var isObserving = false
@@ -187,7 +190,13 @@ data class ConnectionItem(val address: String, private val manager: BluetoothMan
 
     override fun connectionPropertyChanged(mtu: Int, connectionInterval: Int, phy: Int) {
         super.connectionPropertyChanged(mtu, connectionInterval, phy)
+        timeKeeper.end("connection updated")
         Timber.i("connection property changed: mtu: $mtu, conn-interval: $connectionInterval, phy: $phy")
+    }
+
+    fun updatePhy(phyLevel: PhyLevel) {
+        timeKeeper.start("phy level: ${phyLevel.name}")
+        connection?.updatePhy(phyLevel)
     }
 }
 

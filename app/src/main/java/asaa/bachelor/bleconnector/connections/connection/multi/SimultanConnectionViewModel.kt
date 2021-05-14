@@ -1,6 +1,7 @@
 package asaa.bachelor.bleconnector.connections.connection.multi
 
 import androidx.lifecycle.ViewModel
+import asaa.bachelor.bleconnector.bt.custom.le.ESP32Device
 import asaa.bachelor.bleconnector.bt.manager.BluetoothManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
@@ -20,4 +21,9 @@ class SimultanConnectionViewModel @Inject constructor(val bluetoothManager: Blue
         }
     }
 
+    companion object{
+        val DEVICE_A = "24:0A:C4:60:E5:D2"
+            val DEVICE_B = "24:0A:C4:60:EF:3A"
+                val DEVICE_C = "24:0A:C4:61:78:D2"
+    }
 }

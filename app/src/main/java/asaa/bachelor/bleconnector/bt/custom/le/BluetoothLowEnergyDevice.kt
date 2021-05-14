@@ -16,7 +16,7 @@ abstract class BluetoothLowEnergyDevice(device: BluetoothDevice) : CustomBluetoo
     private var bluetoothGatt: BluetoothGatt? = null
 
     // callback will trigger all observers and change state values
-    internal var callback = BluetoothCallback()
+    private var callback = BluetoothCallback()
 
     // States
     override var connectionStatus: ConnectionStatus = ConnectionStatus.DISCONNECTED("")
@@ -89,6 +89,15 @@ abstract class BluetoothLowEnergyDevice(device: BluetoothDevice) : CustomBluetoo
         }
     }
 
+    fun updatePhy(phyLevel: PhyLevel) {
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+            when (phyLevel) {
+                PhyLevel.LEVEL_1 -> bluetoothGatt?.setPreferredPhy(BluetoothDevice.PHY_LE_1M_MASK, BluetoothDevice.PHY_LE_1M_MASK, BluetoothDevice.PHY_OPTION_NO_PREFERRED)
+                PhyLevel.LEVEL_2 -> bluetoothGatt?.setPreferredPhy(BluetoothDevice.PHY_LE_2M_MASK, BluetoothDevice.PHY_LE_2M_MASK, BluetoothDevice.PHY_OPTION_NO_PREFERRED)
+                PhyLevel.LEVEL_CODEC -> bluetoothGatt?.setPreferredPhy(BluetoothDevice.PHY_LE_CODED_MASK, BluetoothDevice.PHY_LE_CODED_MASK, BluetoothDevice.PHY_OPTION_S2)
+            }
+        }
+    }
 
     // operations on BluetoothConnection
 

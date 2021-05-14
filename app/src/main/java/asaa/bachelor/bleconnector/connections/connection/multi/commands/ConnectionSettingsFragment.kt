@@ -6,6 +6,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.core.text.isDigitsOnly
 import androidx.fragment.app.activityViewModels
+import asaa.bachelor.bleconnector.bt.PhyLevel
 import asaa.bachelor.bleconnector.bt.manager.BluetoothManager
 import asaa.bachelor.bleconnector.connections.connection.multi.SimultanConnectionViewModel
 import asaa.bachelor.bleconnector.databinding.ConnectionSettingsFragmentBinding
@@ -44,6 +45,15 @@ class ConnectionSettingsFragment : SelectedConnectionCommandFragment() {
                     }
                 }
             }
+        }
+        binding.connPhyUpdateButton.setOnClickListener {
+            viewModel.connections.filterNotNull().filter { it.isSelected }.forEach {
+                if (binding.connPhyInput.text.toString().toInt() == 1)
+                    it.updatePhy(PhyLevel.LEVEL_1)
+                else
+                    it.updatePhy(PhyLevel.LEVEL_2)
+            }
+            binding.connPhyInput.setText("")
         }
         return binding.root
     }

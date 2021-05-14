@@ -34,6 +34,6 @@ class ConnectionDetailClassicViewModel @Inject constructor(val bluetoothManager:
     }
 
     override fun onRead(bytes: ByteArray) {
-        bytes.joinToString { it.toChar().toString() }.let { latestRead.postValue(it) }
+        bytes.joinToString(separator = "") { it.toChar().toString() }.let { latestRead.postValue(it) }
     }
 }
