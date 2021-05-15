@@ -27,18 +27,12 @@ class ReadFragment : SelectedConnectionCommandFragment() {
     ): View? {
         binding = ReadFragmentBinding.inflate(inflater, container, false)
         binding.lifecycleOwner = viewLifecycleOwner
+        binding.viewmodel = viewModel
         binding.readSelected1.setOnClickListener {
             viewModel.connections.filterNotNull().filter { it.isSelected }.forEach {
                 Timber.d("read C1: $it")
                 if (it.isReady)
                     it.readC1()
-            }
-        }
-        binding.readSelected2.setOnClickListener {
-            viewModel.connections.filterNotNull().filter { it.isSelected }.forEach {
-                Timber.d("read C2: $it")
-                if (it.isReady)
-                    it.readC2()
             }
         }
         return binding.root

@@ -15,11 +15,18 @@ data class ConnectionItem(val address: String, private val manager: BluetoothMan
 
     val timeKeeper = TimeKeeper()
 
+    var readValue = ""
+        set(value) {
+            field = value
+            asLiveData.postValue(this)
+        }
+
     var isSelected = false
         set(value) {
             field = value
             asLiveData.postValue(this)
         }
+
     var isReady = false
         set(value) {
             field = value
@@ -100,25 +107,6 @@ data class ConnectionItem(val address: String, private val manager: BluetoothMan
             Timber.w("read Characteristic 1 is not possible because $address is not ready")
     }
 
-    fun readC2() {
-        if (isReady) {
-            timeKeeper.start("read2")
-            connection?.readCharacteristic2()
-
-        } else
-            Timber.w("read Characteristic 2 is not possible because $address is not ready")
-    }
-
-    fun write(payload: String, withoutResponse: Boolean = false) {
-        if (withoutResponse) {
-            timeKeeper.start("write without Response $payload")
-            connection?.writeWithoutResponse(payload)
-        } else {
-            timeKeeper.start("write $payload")
-            connection?.write(payload)
-        }
-    }
-
     fun toggle() {
         isSelected = !isSelected
     }
@@ -188,17 +176,7 @@ data class ConnectionItem(val address: String, private val manager: BluetoothMan
 
     override fun onCharacteristic1Changed(newValue: String) {
         timeKeeper.end(newValue)
-    }
-
-    override fun onCharacteristic2Changed(newValue: String) {
-        timeKeeper.end(newValue)
-    }
-
-    override fun writeCommandStatusChanged(writeStatus: WriteStatus) {
-        when (writeStatus) {
-            is WriteStatus.DONE, is WriteStatus.FAILED -> timeKeeper.end(writeStatus.toString())
-            else -> timeKeeper.log(writeStatus.toString())
-        }
+        readValue = newValue
     }
 
     fun toggleNotify() {

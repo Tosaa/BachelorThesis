@@ -8,10 +8,8 @@ class CommandsAdapter(fragment: Fragment) : FragmentStateAdapter(fragment) {
     val fragments = listOf(
         ConnectFragment(),
         ReadFragment(),
-        WriteFragment(),
         ConnectionSettingsFragment(),
         NotifyIndicateFragment()
-
     )
 
     override fun getItemCount(): Int {

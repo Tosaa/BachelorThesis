@@ -68,16 +68,6 @@ class ConnectionDetailViewModel @Inject constructor(val bluetoothManager: Blueto
         customReadValue.postValue(newValue)
     }
 
-    override fun onCharacteristic2Changed(newValue: String) {
-        customReadValue.postValue(newValue)
-    }
-
-    override fun writeCommandStatusChanged(writeStatus: WriteStatus) {
-        if (writeStatus is WriteStatus.DONE) {
-            customReadValue.postValue(writeStatus.writtenValue)
-        }
-    }
-
     override fun notifyStatusChanged(notificationStatus: NotificationStatus) {
         Timber.i("notify status changed: $notificationStatus")
 

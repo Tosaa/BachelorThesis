@@ -130,17 +130,5 @@ class ESP32Fragment : Fragment() {
                 }
             }
         }
-        binding.customStatus.writeButton.setOnClickListener {
-            val text = binding.customStatus.writeTextField.text.toString()
-            Timber.i("$macAddress: onClick: write $text")
-            leDevice?.write(text)
-            binding.customStatus.writeTextField.setText("")
-        }
-        binding.customStatus.writeNoResponseButton.setOnClickListener {
-            val text = binding.customStatus.writeTextField.text.toString()
-            Timber.i("$macAddress: onClick: write without response $text")
-            leDevice?.writeWithoutResponse(text)
-            binding.customStatus.writeTextField.setText("")
-        }
     }
 }
