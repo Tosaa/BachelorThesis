@@ -28,6 +28,14 @@ class NotifyIndicateFragment : SelectedConnectionCommandFragment() {
         binding = NotifyIndicateFragmentBinding.inflate(inflater, container, false)
         binding.lifecycleOwner = viewLifecycleOwner
         binding.viewmodel = viewModel
+        binding.sendReadRequest.setOnClickListener {
+            viewModel.connections.filterNotNull().filter { it.isSelected }.forEach {
+                Timber.d("sent read request: $it")
+                if (it.isReady)
+                    it.sendReadCommand()
+            }
+        }
+
         binding.notifyBtn.setOnClickListener {
             viewModel.connections.filterNotNull().filter { it.isSelected }.forEach {
                 Timber.d("toggle notify: $it")

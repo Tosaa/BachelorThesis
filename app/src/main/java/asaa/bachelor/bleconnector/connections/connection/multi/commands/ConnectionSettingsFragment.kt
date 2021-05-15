@@ -55,6 +55,17 @@ class ConnectionSettingsFragment : SelectedConnectionCommandFragment() {
             }
             binding.connPhyInput.setText("")
         }
+        binding.characteristicSizeBtn.setOnClickListener {
+            viewModel.connections.filterNotNull().filter { it.isSelected }.forEach { connectionItem ->
+                binding.characteristicSizeInput.text.toString().let {
+                    if (it.isNotEmpty() && it.isDigitsOnly()) {
+                        connectionItem.setValueSize(it.toInt())
+                    }
+                }
+
+            }
+        }
+
         return binding.root
     }
 }

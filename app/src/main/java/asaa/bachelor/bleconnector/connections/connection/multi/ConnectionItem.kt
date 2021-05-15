@@ -2,11 +2,13 @@ package asaa.bachelor.bleconnector.connections.connection.multi
 
 import android.content.Context
 import androidx.lifecycle.MutableLiveData
-import asaa.bachelor.bleconnector.bt.*
+import asaa.bachelor.bleconnector.bt.ConnectionStatus
+import asaa.bachelor.bleconnector.bt.DeviceStateObserver
+import asaa.bachelor.bleconnector.bt.DiscoveryStatus
+import asaa.bachelor.bleconnector.bt.PhyLevel
 import asaa.bachelor.bleconnector.bt.custom.le.ESP32Device
 import asaa.bachelor.bleconnector.bt.custom.le.ESP32DeviceObserver
 import asaa.bachelor.bleconnector.bt.custom.le.NotificationStatus
-import asaa.bachelor.bleconnector.bt.custom.le.WriteStatus
 import asaa.bachelor.bleconnector.bt.manager.BluetoothManager
 import timber.log.Timber
 
@@ -92,6 +94,20 @@ data class ConnectionItem(val address: String, private val manager: BluetoothMan
             connection?.changeConnectionParameter(interval.toInt())
         }
         return false
+    }
+
+    fun sendReadCommand() {
+        if (isReady) {
+            timeKeeper.start("send Read command")
+            connection?.sentReadCommand()
+        }
+    }
+
+    fun setValueSize(size: Int) {
+        if (isReady) {
+            timeKeeper.start("Set Value size")
+            connection?.changeDataSize(size)
+        }
     }
 
     fun disconnect() {
@@ -206,6 +222,7 @@ data class ConnectionItem(val address: String, private val manager: BluetoothMan
     override fun notifyValueChanged(newValue: String) {
         super.notifyValueChanged(newValue)
         notifyValue = newValue
+        timeKeeper.end("Notify Val:$newValue")
     }
 
     fun toggleIndicate() {
@@ -234,6 +251,13 @@ data class ConnectionItem(val address: String, private val manager: BluetoothMan
     override fun indicateValueChanged(newValue: String) {
         super.indicateValueChanged(newValue)
         indicateValue = newValue
+        timeKeeper.end("Indicate Val:$newValue")
+    }
+
+    override fun dataSizeChanged(newSize: Int) {
+        super.dataSizeChanged(newSize)
+        timeKeeper.end("Data Size changed: $newSize")
+        Timber.i("size of value changed: $newSize")
     }
 
     override fun connectionPropertyChanged(mtu: Int, connectionInterval: Int, phy: Int) {

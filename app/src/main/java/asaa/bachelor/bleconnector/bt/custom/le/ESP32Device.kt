@@ -15,6 +15,8 @@ class ESP32Device(device: BluetoothDevice) : BluetoothLowEnergyDevice(device) {
     private var characteristicNotify: BluetoothGattCharacteristic? = null
     private var characteristicIndicate: BluetoothGattCharacteristic? = null
     private var characteristicConnectionParameter: BluetoothGattCharacteristic? = null
+    private var characteristicSizeParameter: BluetoothGattCharacteristic? = null
+    private var characteristicCommand: BluetoothGattCharacteristic? = null
 
     var characteristic1 = ""
         set(value) {
@@ -41,7 +43,6 @@ class ESP32Device(device: BluetoothDevice) : BluetoothLowEnergyDevice(device) {
             observer.forEach { it.indicateValueChanged(value) }
             field = value
         }
-
     private var latestMtu = 23
         set(value) {
             field = value
@@ -57,6 +58,11 @@ class ESP32Device(device: BluetoothDevice) : BluetoothLowEnergyDevice(device) {
             field = value
             observer.forEach { it.connectionPropertyChanged(latestMtu, latestInterval, latestPhy) }
         }
+    private var latestSize = 0
+        set(value) {
+            field = value
+            observer.forEach { it.dataSizeChanged(value) }
+        }
 
     override fun initializeCharacteristics() {
         super.initializeCharacteristics()
@@ -64,6 +70,8 @@ class ESP32Device(device: BluetoothDevice) : BluetoothLowEnergyDevice(device) {
         characteristicNotify = getCharacteristic(SERVICE_UUID, NOTIFY_UUID)
         characteristicIndicate = getCharacteristic(SERVICE_UUID, INDICATE_UUID)
         characteristicConnectionParameter = getCharacteristic(SERVICE_UUID, CONNECTION_INTERVAL_UUID)
+        characteristicCommand = getCharacteristic(SERVICE_UUID, COMMAND_UUID)
+        characteristicSizeParameter = getCharacteristic(SERVICE_UUID, DATA_SIZE_UUID)
     }
 
     fun readCharacteristic1() {
@@ -143,6 +151,28 @@ class ESP32Device(device: BluetoothDevice) : BluetoothLowEnergyDevice(device) {
 
     }
 
+    fun changeDataSize(newSize: Int) {
+        characteristicSizeParameter.let { characteristic ->
+            if (characteristic == null) {
+                return
+            }
+
+            val byteArray = ByteBuffer.allocate(4).putInt(newSize).array().reversedArray()
+            Timber.i("update value size: ${byteArray.toUByteArray().joinToString()} ")
+            writeCharacteristic(characteristic, value = byteArray)
+        }
+    }
+
+    fun sentReadCommand() {
+        characteristicCommand.let { characteristic ->
+            if (characteristic == null) {
+                return
+            }
+
+            writeCharacteristic(characteristic, value = "READ".toByteArray())
+        }
+    }
+
     override fun onReadResult(characteristic: BluetoothGattCharacteristic?) {
         val value = characteristic?.value?.joinToString(separator = "") { it.toChar().toString() } ?: ""
         when (characteristic) {
@@ -161,6 +191,8 @@ class ESP32Device(device: BluetoothDevice) : BluetoothLowEnergyDevice(device) {
     override fun onWriteResult(characteristic: BluetoothGattCharacteristic?) {
         val value = characteristic?.value?.joinToString(separator = "") { it.toChar().toString() } ?: ""
         when (characteristic) {
+            characteristicCommand -> Timber.d("Command was send")
+            characteristicSizeParameter -> latestSize = characteristic?.value?.first()?.toUByte()?.toInt() ?: 20
             characteristicConnectionParameter -> latestInterval = characteristic?.value?.take(2)?.mapIndexed { index, byte ->
                 if (index == 0)
                     byte.toUByte().toInt()
@@ -193,6 +225,8 @@ class ESP32Device(device: BluetoothDevice) : BluetoothLowEnergyDevice(device) {
         val NOTIFY_UUID = "1ee1d0fc-6f3c-4c6a-ac1c-c54d2a97f932"
         val INDICATE_UUID = "83157f66-7c91-431e-a037-7c2b9e594ef6"
         val CONNECTION_INTERVAL_UUID = "46ac40cc-7eaa-41a9-9964-956a984fd9c3"
+        val COMMAND_UUID = "8c65f73d-ddab-4dd9-a2e0-f5a10ce7e252"
+        val DATA_SIZE_UUID = "f3410822-00c0-4dd3-a60b-3cd6124fd323"
     }
 
 }
@@ -207,6 +241,7 @@ interface ESP32DeviceObserver {
     fun indicateStatusChanged(notificationStatus: NotificationStatus) {}
     fun indicateValueChanged(newValue: String) {}
     fun connectionPropertyChanged(mtu: Int, connectionInterval: Int, phy: Int) {}
+    fun dataSizeChanged(newSize: Int) {}
 
 
 }
