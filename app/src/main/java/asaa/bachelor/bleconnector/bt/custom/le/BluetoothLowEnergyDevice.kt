@@ -388,10 +388,23 @@ abstract class BluetoothLowEnergyDevice(device: BluetoothDevice) : CustomBluetoo
 }
 
 sealed class NotificationStatus {
+    override fun toString(): String {
+        return this.javaClass.simpleName.toString()
+    }
+
     object STARTED : NotificationStatus()
     object PENDING : NotificationStatus()
-    class DONE(val isActive: Boolean) : NotificationStatus()
-    class FAILED(val info: String = "") : NotificationStatus()
+    class DONE(val isActive: Boolean) : NotificationStatus() {
+        override fun toString(): String {
+            return super.toString()+ " " + if (isActive) "(ACTIVE)" else "(INACTIVE)"
+        }
+    }
+
+    class FAILED(val info: String = "") : NotificationStatus() {
+        override fun toString(): String {
+            return super.toString() + " ($info)"
+        }
+    }
 }
 
 sealed class WriteStatus {

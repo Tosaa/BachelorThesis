@@ -8,7 +8,6 @@ import androidx.fragment.app.activityViewModels
 import asaa.bachelor.bleconnector.bt.manager.BluetoothManager
 import asaa.bachelor.bleconnector.connections.connection.multi.SimultanConnectionViewModel
 import asaa.bachelor.bleconnector.databinding.NotifyIndicateFragmentBinding
-import asaa.bachelor.bleconnector.databinding.ReadFragmentBinding
 import dagger.hilt.android.AndroidEntryPoint
 import timber.log.Timber
 import javax.inject.Inject
@@ -20,7 +19,7 @@ class NotifyIndicateFragment : SelectedConnectionCommandFragment() {
     lateinit var bluetoothManager: BluetoothManager
     val viewModel: SimultanConnectionViewModel by activityViewModels()
     lateinit var binding: NotifyIndicateFragmentBinding
-    override val title = "Read"
+    override val title = "Notify/Indicate"
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -28,18 +27,19 @@ class NotifyIndicateFragment : SelectedConnectionCommandFragment() {
     ): View? {
         binding = NotifyIndicateFragmentBinding.inflate(inflater, container, false)
         binding.lifecycleOwner = viewLifecycleOwner
-        binding.readSelected1.setOnClickListener {
+        binding.viewmodel = viewModel
+        binding.notifyBtn.setOnClickListener {
             viewModel.connections.filterNotNull().filter { it.isSelected }.forEach {
-                Timber.d("read C1: $it")
+                Timber.d("toggle notify: $it")
                 if (it.isReady)
-                    it.readC1()
+                    it.toggleNotify()
             }
         }
-        binding.readSelected2.setOnClickListener {
+        binding.indicateBtn.setOnClickListener {
             viewModel.connections.filterNotNull().filter { it.isSelected }.forEach {
-                Timber.d("read C2: $it")
+                Timber.d("toggle indicate: $it")
                 if (it.isReady)
-                    it.readC2()
+                    it.toggleIndicate()
             }
         }
         return binding.root

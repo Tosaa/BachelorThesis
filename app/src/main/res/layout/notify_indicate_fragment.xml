@@ -2,10 +2,10 @@
 <layout xmlns:android="http://schemas.android.com/apk/res/android">
 
     <data>
+
         <variable
             name="viewmodel"
             type="asaa.bachelor.bleconnector.connections.connection.multi.SimultanConnectionViewModel" />
-
     </data>
 
     <LinearLayout
@@ -19,21 +19,21 @@
             android:orientation="horizontal">
 
             <com.google.android.material.button.MaterialButton
-                android:id="@+id/read_selected_1"
+                android:id="@+id/notify_btn"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_margin="@dimen/button_default_margin"
                 android:layout_weight="1"
 
-                android:text="READ 1" />
+                android:text="NOTIFY" />
 
             <com.google.android.material.button.MaterialButton
-                android:id="@+id/read_selected_2"
+                android:id="@+id/indicate_btn"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_margin="@dimen/button_default_margin"
                 android:layout_weight="1"
-                android:text="READ 2" />
+                android:text="INDICATE" />
         </LinearLayout>
 
         <LinearLayout
@@ -41,21 +41,60 @@
             android:layout_height="wrap_content"
             android:orientation="horizontal">
 
-            <com.google.android.material.textview.MaterialTextView
-                android:id="@+id/read_selected_1_text"
-                style="@style/AppTheme.TextView.SubTitle"
+            <LinearLayout
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_margin="@dimen/button_default_margin"
-                android:layout_weight="1" />
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:orientation="vertical">
 
-            <com.google.android.material.textview.MaterialTextView
-                style="@style/AppTheme.TextView.SubTitle"
-                android:id="@+id/read_selected_2_text"
+                <com.google.android.material.textview.MaterialTextView
+                    style="@style/AppTheme.TextView.SubTitle"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="@dimen/button_default_margin"
+                    android:text="@{viewmodel.firstConnection.notifyValue}" />
+
+                <com.google.android.material.textview.MaterialTextView
+                    style="@style/AppTheme.TextView.SubTitle"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="@dimen/button_default_margin"
+                    android:text="@{viewmodel.secondConnection.notifyValue}" />
+
+                <com.google.android.material.textview.MaterialTextView
+                    style="@style/AppTheme.TextView.SubTitle"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="@dimen/button_default_margin"
+                    android:text="@{viewmodel.thirdConnection.notifyValue}" />
+            </LinearLayout>
+
+
+            <LinearLayout
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_margin="@dimen/button_default_margin"
-                android:layout_weight="1"/>
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <com.google.android.material.textview.MaterialTextView
+                    style="@style/AppTheme.TextView.SubTitle"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="@dimen/button_default_margin"
+                    android:text="@{viewmodel.firstConnection.indicateValue}" />
+                <com.google.android.material.textview.MaterialTextView
+                    style="@style/AppTheme.TextView.SubTitle"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="@dimen/button_default_margin"
+                    android:text="@{viewmodel.secondConnection.indicateValue}" />
+                <com.google.android.material.textview.MaterialTextView
+                    style="@style/AppTheme.TextView.SubTitle"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="@dimen/button_default_margin"
+                    android:text="@{viewmodel.thirdConnection.indicateValue}" />
+            </LinearLayout>
         </LinearLayout>
 
     </LinearLayout>

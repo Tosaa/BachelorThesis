@@ -5,7 +5,14 @@ import androidx.viewpager2.adapter.FragmentStateAdapter
 import asaa.bachelor.bleconnector.connections.connection.multi.commands.*
 
 class CommandsAdapter(fragment: Fragment) : FragmentStateAdapter(fragment) {
-    val fragments = listOf<SelectedConnectionCommandFragment>(ConnectFragment(),ReadFragment(), WriteFragment(),ConnectionSettingsFragment())
+    val fragments = listOf(
+        ConnectFragment(),
+        ReadFragment(),
+        WriteFragment(),
+        ConnectionSettingsFragment(),
+        NotifyIndicateFragment()
+
+    )
 
     override fun getItemCount(): Int {
         return fragments.size

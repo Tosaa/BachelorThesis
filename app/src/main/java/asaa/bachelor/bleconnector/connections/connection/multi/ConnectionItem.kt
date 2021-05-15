@@ -5,6 +5,7 @@ import androidx.lifecycle.MutableLiveData
 import asaa.bachelor.bleconnector.bt.*
 import asaa.bachelor.bleconnector.bt.custom.le.ESP32Device
 import asaa.bachelor.bleconnector.bt.custom.le.ESP32DeviceObserver
+import asaa.bachelor.bleconnector.bt.custom.le.NotificationStatus
 import asaa.bachelor.bleconnector.bt.custom.le.WriteStatus
 import asaa.bachelor.bleconnector.bt.manager.BluetoothManager
 import timber.log.Timber
@@ -16,13 +17,25 @@ data class ConnectionItem(val address: String, private val manager: BluetoothMan
 
     var isSelected = false
         set(value) {
-            asLiveData.postValue(this)
             field = value
+            asLiveData.postValue(this)
         }
     var isReady = false
         set(value) {
-            asLiveData.postValue(this)
             field = value
+            asLiveData.postValue(this)
+        }
+
+    var notifyValue = ""
+        set(value) {
+            field = value
+            asLiveData.postValue(this)
+        }
+
+    var indicateValue = ""
+        set(value) {
+            field = value
+            asLiveData.postValue(this)
         }
 
     var connection = manager.getCustomBluetoothDeviceFor(address) as ESP32Device?
@@ -31,7 +44,7 @@ data class ConnectionItem(val address: String, private val manager: BluetoothMan
         if (connection == null) {
             connection = manager.getCustomBluetoothDeviceFor(address) as ESP32Device?
         }
-        if (connection != null){
+        if (connection != null) {
             asLiveData.postValue(this)
         }
     }
@@ -186,6 +199,63 @@ data class ConnectionItem(val address: String, private val manager: BluetoothMan
             is WriteStatus.DONE, is WriteStatus.FAILED -> timeKeeper.end(writeStatus.toString())
             else -> timeKeeper.log(writeStatus.toString())
         }
+    }
+
+    fun toggleNotify() {
+        if (isReady) {
+
+            if (connection?.notifyStatus is NotificationStatus.DONE && (connection?.notifyStatus as NotificationStatus.DONE).isActive) {
+                timeKeeper.start("Stop Notify")
+                connection?.stopNotify()
+            } else {
+                timeKeeper.start("Start Notify")
+                connection?.startNotify()
+            }
+        } else {
+            Timber.w("device not ready")
+        }
+    }
+
+    override fun notifyStatusChanged(notificationStatus: NotificationStatus) {
+        super.notifyStatusChanged(notificationStatus)
+        if (notificationStatus is NotificationStatus.DONE || notificationStatus is NotificationStatus.FAILED) {
+            timeKeeper.end(notificationStatus.toString())
+        } else {
+            timeKeeper.log(notificationStatus.toString())
+        }
+    }
+
+    override fun notifyValueChanged(newValue: String) {
+        super.notifyValueChanged(newValue)
+        notifyValue = newValue
+    }
+
+    fun toggleIndicate() {
+        if (isReady) {
+            if (connection?.indicateStatus is NotificationStatus.DONE && (connection?.indicateStatus as NotificationStatus.DONE).isActive) {
+                timeKeeper.start("Stop Indicate")
+                connection?.stopIndicate()
+            } else {
+                timeKeeper.start("Start Indicate")
+                connection?.startIndicate()
+            }
+        } else {
+            Timber.w("device not ready")
+        }
+    }
+
+    override fun indicateStatusChanged(notificationStatus: NotificationStatus) {
+        super.indicateStatusChanged(notificationStatus)
+        if (notificationStatus is NotificationStatus.DONE || notificationStatus is NotificationStatus.FAILED) {
+            timeKeeper.end(notificationStatus.toString())
+        } else {
+            timeKeeper.log(notificationStatus.toString())
+        }
+    }
+
+    override fun indicateValueChanged(newValue: String) {
+        super.indicateValueChanged(newValue)
+        indicateValue = newValue
     }
 
     override fun connectionPropertyChanged(mtu: Int, connectionInterval: Int, phy: Int) {
