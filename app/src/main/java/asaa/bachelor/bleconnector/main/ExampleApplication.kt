@@ -26,9 +26,9 @@ class ExampleApplication : Application() {
     }
 
     override fun onTerminate() {
-        super.onTerminate()
         fileLoggingTree.writeToFile()
         Timber.uprootAll()
+        super.onTerminate()
     }
 
     fun saveLogs() {

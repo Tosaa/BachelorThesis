@@ -24,7 +24,7 @@ abstract class BluetoothLowEnergyDevice(device: BluetoothDevice) : CustomBluetoo
             notifyConnectionStateChanged(value)
             Timber.d("$deviceTag: connection Status Changed: $field -> $value")
             if (value is ConnectionStatus.DISCONNECTED) {
-                bluetoothGatt = null
+                onDisconnected()
             }
             field = value
         }
@@ -121,6 +121,11 @@ abstract class BluetoothLowEnergyDevice(device: BluetoothDevice) : CustomBluetoo
         }
         Timber.w("$deviceTag: could not write $value to characteristic")
         return false
+    }
+
+    internal open fun onDisconnected() {
+        bluetoothGatt = null
+        discoveryStatus = DiscoveryStatus.NOT_DISCOVERED
     }
 
     internal fun getCharacteristic(service: String, characteristic: String): BluetoothGattCharacteristic? {
@@ -396,7 +401,7 @@ sealed class NotificationStatus {
     object PENDING : NotificationStatus()
     class DONE(val isActive: Boolean) : NotificationStatus() {
         override fun toString(): String {
-            return super.toString()+ " " + if (isActive) "(ACTIVE)" else "(INACTIVE)"
+            return super.toString() + " " + if (isActive) "(ACTIVE)" else "(INACTIVE)"
         }
     }
 

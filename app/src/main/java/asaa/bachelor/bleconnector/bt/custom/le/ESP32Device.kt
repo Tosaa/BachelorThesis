@@ -2,6 +2,7 @@ package asaa.bachelor.bleconnector.bt.custom.le
 
 import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothGattCharacteristic
+import asaa.bachelor.bleconnector.bt.ConnectionStatus
 import timber.log.Timber
 import java.nio.ByteBuffer
 
@@ -171,6 +172,18 @@ class ESP32Device(device: BluetoothDevice) : BluetoothLowEnergyDevice(device) {
 
             writeCharacteristic(characteristic, value = "READ".toByteArray())
         }
+    }
+
+    override fun onDisconnected() {
+        super.onDisconnected()
+        characteristicRead1 = null
+        characteristicNotify = null
+        characteristicIndicate = null
+        characteristicConnectionParameter = null
+        characteristicSizeParameter = null
+        characteristicCommand = null
+        notifyStatus = NotificationStatus.DONE(false)
+        indicateStatus = NotificationStatus.DONE(false)
     }
 
     override fun onReadResult(characteristic: BluetoothGattCharacteristic?) {

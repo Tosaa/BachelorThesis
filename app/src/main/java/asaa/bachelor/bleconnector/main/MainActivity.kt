@@ -112,15 +112,15 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onDestroy() {
-        super.onDestroy()
         (application as ExampleApplication).saveLogs()
+        super.onDestroy()
     }
 
 
     override fun onStop() {
-        super.onStop()
         // Don't forget to unregister the ACTION_FOUND receiver.
         unregisterReceiver(receiver)
+        super.onStop()
     }
 
 }
