@@ -1,5 +1,6 @@
 package asaa.bachelor.bleconnector.connections
 
+import android.content.SharedPreferences
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -21,7 +22,11 @@ class ConnectionsFragment : Fragment() {
     private lateinit var binding: ConnectionsFragmentBinding
 
     @Inject
+    lateinit var preferences: SharedPreferences
+
+    @Inject
     lateinit var bluetoothManager: BluetoothManager
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -29,6 +34,10 @@ class ConnectionsFragment : Fragment() {
         binding = ConnectionsFragmentBinding.inflate(layoutInflater, container, false)
         binding.viewmodel = viewModel
         binding.lifecycleOwner = this
+        return binding.root
+    }
+
+    override fun onResume() {
         setupBtDevicesAdapter(binding.btDevicesRecyclerView)
 
         binding.startDiscoveryButton.setOnClickListener {
@@ -36,9 +45,13 @@ class ConnectionsFragment : Fragment() {
             viewModel.startScanning()
         }
 
-        binding.startClassicDiscoveryButton.setOnClickListener {
-            Timber.i("start Classic Discovery")
-            viewModel.startScanning(scanLowEnergy = false)
+        binding.startClassicDiscoveryButton.apply {
+            visibility = if (preferences.getBoolean("is_debug", true)) View.VISIBLE else View.GONE
+
+            setOnClickListener {
+                Timber.i("start Classic Discovery")
+                viewModel.startScanning(scanLowEnergy = false)
+            }
         }
 
         binding.stopDiscoveryButton.setOnClickListener {
@@ -49,7 +62,7 @@ class ConnectionsFragment : Fragment() {
         binding.simultanEspActions.setOnClickListener {
             findNavController().navigate(ConnectionsFragmentDirections.actionConnectionsFragmentToSimultanConnectionFragment())
         }
-        return binding.root
+        super.onResume()
     }
 
     private fun setupBtDevicesAdapter(recyclerView: RecyclerView) {

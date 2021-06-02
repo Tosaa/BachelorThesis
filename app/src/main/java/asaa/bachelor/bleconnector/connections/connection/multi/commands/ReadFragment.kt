@@ -35,6 +35,7 @@ class ReadFragment : SelectedConnectionCommandFragment() {
                     it.readC1()
             }
         }
+
         return binding.root
     }
 }

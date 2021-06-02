@@ -46,15 +46,6 @@ class ConnectionSettingsFragment : SelectedConnectionCommandFragment() {
                 }
             }
         }
-        binding.connPhyUpdateButton.setOnClickListener {
-            viewModel.connections.filterNotNull().filter { it.isSelected }.forEach {
-                if (binding.connPhyInput.text.toString().toInt() == 1)
-                    it.updatePhy(PhyLevel.LEVEL_1)
-                else
-                    it.updatePhy(PhyLevel.LEVEL_2)
-            }
-            binding.connPhyInput.setText("")
-        }
         binding.characteristicSizeBtn.setOnClickListener {
             viewModel.connections.filterNotNull().filter { it.isSelected }.forEach { connectionItem ->
                 binding.characteristicSizeInput.text.toString().let {

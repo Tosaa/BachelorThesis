@@ -98,6 +98,7 @@ data class ConnectionItem(val address: String, private val manager: BluetoothMan
 
     fun sendReadCommand() {
         if (isReady) {
+            notifyValue = ""
             timeKeeper.start("send Read command")
             connection?.sentReadCommand()
         }
@@ -221,8 +222,8 @@ data class ConnectionItem(val address: String, private val manager: BluetoothMan
 
     override fun notifyValueChanged(newValue: String) {
         super.notifyValueChanged(newValue)
-        notifyValue = newValue
-        timeKeeper.end("Notify Val:$newValue")
+        notifyValue += newValue
+        timeKeeper.end("Notify Val:$notifyValue")
     }
 
     fun toggleIndicate() {

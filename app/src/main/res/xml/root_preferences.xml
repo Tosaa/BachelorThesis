@@ -4,11 +4,11 @@
     <PreferenceCategory app:title="@string/examples">
 
         <SwitchPreferenceCompat
-            app:key="example"
-            app:title="@string/examplePreference" />
+            app:key="is_debug"
+            app:title="@string/is_debug" />
 
     </PreferenceCategory>
-
+<!--
     <PreferenceCategory
         app:title="System Configurations"
         android:summary="These settings can only be changed in the System Settings"
@@ -34,5 +34,5 @@
 
 
     </PreferenceCategory>
-
+-->
 </PreferenceScreen>
