@@ -1,40 +1,23 @@
-# AndroidTemplates
-This Repo tries to provide a quick start into a new Android App, without initial setup of wide used dependencies.
-The Project uses:
-- Dagger-Hilt (Dependency injection tool)
-- Androidx (Reworked support libary of Android Jetpack)
-- Data Binding (Bind viewmodels to layouts to ease updating views)
-- Material Design (Simple good looking components)
-- KTX libaries (Improve code quality by helpfull extension functions)
-- Android Navigation component (Navigation through all screens)
+# Bachelor Thesis of Anton Saatze
+This Repository is split to three different code bases.
 
-# BASICS:
-- **MVVM** (Model View ViewModel)
-- **One Module only** (This approach might not be the best when it comes to multiple modules in the project)
-- **Kotlin** (Code generation for Java is not within the Dependencies)
+## Android
+The code for the android App can be found in the android folder.
 
-# Architecture
-This Repo will provide 3 Screens:
-- Main Screen (Create your content here)
-- About Screen (Tell the user something about you)
-- Settings Screen (Customize the users experience)
+The app is designed to establish a connection with a bluetooth low energy server. After a connection is established, different settings can be applied and data can be read from a server. Therefore the MAC-Addr of the Server musst be adjusted in the code. The app is not designed yet to select it dynamicly. This was not a mandatory requirement for the thesis. 
 
-The Screens are attached to the same Activity and are controlled by one *androidx.navigation.fragment.NavHostFragment*.  
-This NavHostFragment belongs to the MainActivity. (This Template provides only one Activity)
+The app is written in Kotlin. No Bluetooth Library was used. DI-Tool was HILT. For layout elements Googles Material-Design library was used.
 
-# Tipps:
-## Hilt:
-- use the **@AndroidEntryPoint** for new Activities and Fragments
-- use the **@HiltViewModel** for ViewModels
-- create a new Module for each scope that is needed ("ApplicationModule.kt" will hold all Instances which are mandatory for all Fragments, usecases etc.)
-- always make sure the Activity, the Fragment belongs to is Annotated correctly
-- always make sure the Application, the Activity belongs to is Annotaed correctly
+## Ble Server
+The code for the esp32 Server can be found in the server folder. 
 
-## Use Repositories and UseCases:
-- for seperation of concerns, it's highly recommended to use different Repositories to manage Data
-- for seperation of concerns, it's highly recommended to use different UseCases, which use different Repositories
+The server is designed to be in advertising mode when no connection is established.
 
-## Use Shared Preferences
-- using shared preferences makes it easy to create a settings page where the user can personalize his app
-- using shared preferences makes it easy to read preferences at every occurrance in the code
+## Jupyter
+The code for the processing of recorded values can be found in the jupyter folder.
 
+HCI-Traces and OTA-Traces can be opened in Wireshark and can be exported as CSV-Files
+
+### Start
+To create a Docker-Container use the following command:
+```sudo docker run --name=bleanalyse -v $(pwd)/share:/home/jovyan/work -p 8888:8888 jupyter/datascience-notebook```
