@@ -9,9 +9,8 @@ The app is designed to establish a connection with the bluetooth low energy serv
 ## Ble Server
 The code for the esp32 Server can be found in the server folder. 
 
-The server is designed to be in advertising mode when no connection is established. If it is connected, the following characteristics are available:
-![Server Characteristics](images/server.jpg)
-
+The server is designed to be in advertising mode when no connection is established. If it is connected, the following characteristics are available:  
+<img src="images/customServer.png" alt="Server Service / Characteristics" width="350"/>
 
 ## Jupyter
 The code for the processing of recorded values can be found in the jupyter folder.
