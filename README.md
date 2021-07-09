@@ -16,7 +16,3 @@ The server is designed to be in advertising mode when no connection is establish
 The code for the processing of recorded values can be found in the jupyter folder.
 
 HCI-Traces and OTA-Traces can be opened in Wireshark and can be exported as CSV-Files
-
-### Start
-To create a Docker-Container use the following command:
-```sudo docker run --name=bleanalyse -v $(pwd)/share:/home/jovyan/work -p 8888:8888 jupyter/datascience-notebook```
