@@ -65,3 +65,10 @@ The provided Request Data can be used to compare.
 Therefore different properties can be grouped.  
 In the most cases, two of the properties are grouped and changes in the last one are compared.  
 
+
+### Start
+To create a Docker-Container use the following command:
+```sudo docker run --name=blethesis -v $(pwd)/.:/home/jovyan/work -p 8888:8888 jupyter/datascience-notebook```
+For later Use:
+```sudo docker start blethesis -a```
+
