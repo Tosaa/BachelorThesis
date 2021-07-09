@@ -4,14 +4,14 @@ This Repository is split to three different code bases.
 ## Android
 The code for the android App can be found in the android folder.
 
-The app is designed to establish a connection with a bluetooth low energy server. After a connection is established, different settings can be applied and data can be read from a server. Therefore the MAC-Addr of the Server musst be adjusted in the code. The app is not designed yet to select it dynamicly. This was not a mandatory requirement for the thesis. 
-
-The app is written in Kotlin. No Bluetooth Library was used. DI-Tool was HILT. For layout elements Googles Material-Design library was used.
+The app is designed to establish a connection with the bluetooth low energy server. After a connection is established, different settings can be applied and data can be read from the server.
 
 ## Ble Server
 The code for the esp32 Server can be found in the server folder. 
 
-The server is designed to be in advertising mode when no connection is established.
+The server is designed to be in advertising mode when no connection is established. If it is connected, the following characteristics are available:
+![Server Characteristics](images/server.jpg)
+
 
 ## Jupyter
 The code for the processing of recorded values can be found in the jupyter folder.
